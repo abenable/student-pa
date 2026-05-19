@@ -1,19 +1,42 @@
-# Hermes Configuration Template
-# This file is mounted to /root/.hermes/config.yaml inside the container
+# Hermes Configuration for Student-PA
+# Mounted to /home/hermes/.hermes/config.yaml inside the container
+# Secrets (API keys) live in /home/hermes/.hermes/.env — do NOT put them here.
 
-llm:
-  provider: custom_openai
-  # The agent will send all requests to your self-hosted LiteLLM instance
-  custom_openai:
+model:
+  provider: openai
+  name: ${DEFAULT_MODEL}
+
+providers:
+  openai:
     base_url: ${LITELLM_API_BASE}/v1
     api_key: ${LITELLM_API_KEY}
-  
-  # Default model configured in LiteLLM (e.g., gemini-1.5-pro or claude-3-haiku)
-  model: ${DEFAULT_MODEL}
 
-tools:
-  enabled:
-    - terminal
-    - read_file
-    - write_file
-    - cronjob
+terminal:
+  backend: local
+  timeout: 180
+
+# Keep file reads safe for large PDFs / datasets
+file_read_max_chars: 150000
+
+tool_output:
+  max_bytes: 50000
+  max_lines: 2000
+  max_line_length: 2000
+
+# Context compression — keep conversations healthy on long tasks
+compression:
+  enabled: true
+  threshold: 0.50
+  target_ratio: 0.20
+  protect_last_n: 20
+
+# Memory
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  memory_char_limit: 2200
+  user_char_limit: 1375
+
+# Skill guard (optional safety net for agent-created skills)
+skills:
+  guard_agent_created: false

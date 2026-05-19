@@ -23,4 +23,4 @@ Unread Emails:
 ```
 
 ## Hermes Execution Command (Example)
-`hermes run "Check my unread Gmail. Summarize the important ones, draft a reply to my professor, and add the lab deadline mentioned in email #3 to my Google Calendar."`
+`hermes -z "Check my unread Gmail using gws. Summarize the important ones, draft a reply to my professor, and add the lab deadline mentioned in email #3 to my Google Calendar using gws calendar insert."`

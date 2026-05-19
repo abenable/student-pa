@@ -22,4 +22,4 @@ Transcript:
 ```
 
 ## Hermes Execution Command (Example)
-`hermes run "Get transcript for {URL}, summarize it into a study guide, and save it as a new Google Doc named 'Study Guide: {Video Title}'"`
+`hermes -z "Get the transcript for {URL} using yt-dlp, summarize it into a study guide, and save it as a new Google Doc named 'Study Guide: {Video Title}' using gws docs."`

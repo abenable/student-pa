@@ -1,19 +1,51 @@
-version: '3.8'
-
 services:
   agent:
     build: .
     container_name: student-pa-agent
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      # These environment variables will be picked up by Hermes / LiteLLM
+      # These are referenced by Hermes config.yaml via ${VAR} substitution
       - LITELLM_API_BASE=${LITELLM_API_BASE:-http://host.docker.internal:4000}
-      - LITELLM_API_KEY=${LITELLM_API_KEY:-sk-your-litellm-key}
-      - DEFAULT_MODEL=gemini-1.5-pro # Routed through LiteLLM
+      - LITELLM_API_KEY=${LITELLM_API_KEY:-}
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-gemini-1.5-pro}
+      # Hermes-specific env vars
+      - HERMES_HOME=/home/hermes/.hermes
+      - HERMES_INFERENCE_PROVIDER=openai
+      - OPENAI_API_KEY=${LITELLM_API_KEY:-}
+      - OPENAI_BASE_URL=${LITELLM_API_BASE:-http://host.docker.internal:4000}/v1
+      - HERMES_MODEL=${DEFAULT_MODEL:-gemini-1.5-pro}
+      # GWS CLI config directory (auth credentials)
+      - GOOGLE_WORKSPACE_CLI_CONFIG_DIR=/home/hermes/.gws
+      # Optional: Telegram gateway (fill in .env to enable)
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_ALLOWED_USERS=${TELEGRAM_ALLOWED_USERS:-}
+      - TELEGRAM_HOME_CHANNEL=${TELEGRAM_HOME_CHANNEL:-}
     volumes:
-      # Persist Hermes memory, skills, and configuration
-      - ./hermes-data:/root/.hermes
-      # Mount the out-of-the-box services/prompts
-      - ./services:/app/services
-      # Mount Google Workspace CLI auth credentials (so the agent stays logged in)
-      - ./gws-auth:/root/.gws
+      # Persist Hermes configuration, memory, skills, sessions, logs
+      - ./hermes-data:/home/hermes/.hermes
+      # Mount OOTB services / prompt templates
+      - ./services:/app/services:ro
+      # Mount student data (resumes, lab data, etc.)
+      - ./student-data:/home/hermes/student-data
+      # Persist GWS CLI auth credentials (OAuth tokens, saved logins)
+      - ./gws-auth:/home/hermes/.gws
+    # Required on Linux for host.docker.internal to resolve
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - DAC_OVERRIDE
+      - CHOWN
+      - FOWNER
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import hermes_agent"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

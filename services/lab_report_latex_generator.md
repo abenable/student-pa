@@ -25,4 +25,4 @@ Raw Data & Notes:
 ```
 
 ## Hermes Execution Command (Example)
-`hermes run "Read this lab data, generate a formal lab report in LaTeX, compile it using pdflatex, and send me the final PDF."`
+`hermes -z "Read this lab data from /home/hermes/student-data/lab3_data.csv, generate a formal lab report in LaTeX, compile it using pdflatex, and save the final PDF to /home/hermes/student-data/."`

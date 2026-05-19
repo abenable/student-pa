@@ -23,4 +23,4 @@ Resume: {RESUME_TEXT}
 ```
 
 ## Hermes Execution Command (Example)
-`hermes run "Read this job posting {URL}, draft a direct cover letter using my resume at ~/Resume.pdf, save it to a Doc, and log the application in my Tracker Sheet."`
+`hermes -z "Read this job posting {URL}, draft a direct cover letter using my resume at /home/hermes/student-data/Resume.pdf, save it to a Google Doc with gws docs, and log the application in my Tracker Sheet with gws sheets append."`

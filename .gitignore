@@ -1,0 +1,38 @@
+# Hermes runtime data (contains secrets, memories, sessions)
+hermes-data/
+
+# Google Workspace / student auth credentials
+gws-auth/
+
+# Student uploads (PDFs, resumes, lab data)
+student-data/
+
+# OS / Editor
+.DS_Store
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Environment files (contain secrets)
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
+# LaTeX compilation artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls

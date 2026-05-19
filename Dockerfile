@@ -1,26 +1,54 @@
-FROM ubuntu:22.04
+# Student-PA — Hermes Agent on Node 24 Alpine
+# Multi-stage build to keep the runtime image as small as possible.
 
-# Prevent interactive prompts during apt install
-ENV DEBIAN_FRONTEND=noninteractive
+# ------------------------------------------------------------------------------
+# Builder stage — compile Python wheels so we can discard build tools later
+# ------------------------------------------------------------------------------
+FROM node:24-alpine AS builder
 
-# Install core dependencies: Python, curl, git, and LaTeX (for the typesetter service)
-RUN apt-get update && apt-get install -y \
-    python3 python3-pip python3-venv \
-    curl git wget jq \
-    texlive-latex-base texlive-fonts-recommended texlive-latex-extra \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+    python3-dev py3-pip py3-venv \
+    build-base linux-headers
 
-# Set up a virtual environment and install Hermes Agent
 RUN python3 -m venv /opt/hermes-env
 ENV PATH="/opt/hermes-env/bin:$PATH"
-RUN pip install --upgrade pip && pip install hermes-agent
+
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir \
+        hermes-agent[youtube,web,cron,messaging] \
+        pymupdf \
+        yt-dlp
+
+# ------------------------------------------------------------------------------
+# Runtime stage — only runtime deps + copied venv + GWS CLI
+# ------------------------------------------------------------------------------
+FROM node:24-alpine
+
+RUN apk add --no-cache \
+    python3 bash ca-certificates \
+    curl git jq wget \
+    texlive texmf-dist-latexextra \
+    pandoc \
+    libstdc++
+
+# Pull in the pre-built Python environment (Hermes + tools)
+COPY --from=builder /opt/hermes-env /opt/hermes-env
+ENV PATH="/opt/hermes-env/bin:$PATH"
 
 # Install GWS CLI (Google Workspace CLI)
-# Note: Replace this with the specific GWS CLI binary URL you use
-# RUN curl -L https://example.com/path/to/gws-linux-amd64 -o /usr/local/bin/gws && chmod +x /usr/local/bin/gws
+RUN npm install -g @googleworkspace/cli \
+    && gws --version
 
-# Set the working directory
+# Create non-root user
+RUN adduser -D -h /home/hermes -s /bin/bash hermes \
+    && mkdir -p /home/hermes/.hermes /home/hermes/.gws /app \
+    && touch /home/hermes/.hermes/.env \
+    && chown -R hermes:hermes /home/hermes
+
 WORKDIR /app
 
-# By default, keep the container running so we can exec into it or run cronjobs
+USER hermes
+ENV HOME=/home/hermes
+ENV HERMES_HOME=/home/hermes/.hermes
+
 CMD ["tail", "-f", "/dev/null"]

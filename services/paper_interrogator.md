@@ -22,4 +22,4 @@ Paper Text:
 ```
 
 ## Hermes Execution Command (Example)
-`hermes run "Fetch arXiv paper {ID}, give me a skim summary, and tell me what hardware they used for their experiments."`
+`hermes -z "Fetch arXiv paper {ID}, give me a skim summary, and tell me what hardware they used for their experiments."`
