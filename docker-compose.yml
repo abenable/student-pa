@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  agent:
+    build: .
+    container_name: student-pa-agent
+    restart: unless-stopped
+    environment:
+      # These environment variables will be picked up by Hermes / LiteLLM
+      - LITELLM_API_BASE=${LITELLM_API_BASE:-http://host.docker.internal:4000}
+      - LITELLM_API_KEY=${LITELLM_API_KEY:-sk-your-litellm-key}
+      - DEFAULT_MODEL=gemini-1.5-pro # Routed through LiteLLM
+    volumes:
+      # Persist Hermes memory, skills, and configuration
+      - ./hermes-data:/root/.hermes
+      # Mount the out-of-the-box services/prompts
+      - ./services:/app/services
+      # Mount Google Workspace CLI auth credentials (so the agent stays logged in)
+      - ./gws-auth:/root/.gws

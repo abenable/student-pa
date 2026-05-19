@@ -1,0 +1,19 @@
+# Hermes Configuration Template
+# This file is mounted to /root/.hermes/config.yaml inside the container
+
+llm:
+  provider: custom_openai
+  # The agent will send all requests to your self-hosted LiteLLM instance
+  custom_openai:
+    base_url: ${LITELLM_API_BASE}/v1
+    api_key: ${LITELLM_API_KEY}
+  
+  # Default model configured in LiteLLM (e.g., gemini-1.5-pro or claude-3-haiku)
+  model: ${DEFAULT_MODEL}
+
+tools:
+  enabled:
+    - terminal
+    - read_file
+    - write_file
+    - cronjob
