@@ -4,36 +4,51 @@ A Dockerized [Hermes Agent](https://hermes-agent.nousresearch.com/) template pre
 
 ## What's Inside
 
-- **Base Image:** `node:24-alpine` (multi-stage build for minimal size)
-- **Agent Engine:** [Hermes Agent](https://pypi.org/project/hermes-agent/) (Nous Research)
-- **LLM Gateway:** Self-hosted LiteLLM (OpenAI-compatible proxy for model routing + token billing)
-- **Pre-built Services:** 5 student workflow templates in `/services/`
-- **Extras Installed:** GWS CLI, YouTube, Web, Cron, Messaging
+- Base Image: `node:24-alpine` (multi-stage build for minimal size)
+- Agent Engine: [Hermes Agent](https://pypi.org/project/hermes-agent/) (Nous Research)
+- LLM Gateway: Self-hosted LiteLLM (OpenAI-compatible proxy for model routing + token billing)
+- Pre-built Services: 5 student workflow templates in `/services/`
+- Extras Installed: GWS CLI, YouTube, Web, Cron, Messaging
 
-## Quick Start
-
-### 1. Configure Environment
+## Quick Start (One-Liner Install)
 
 ```bash
-cp .env.example .env
-# Edit .env with your LiteLLM URL and API key
+curl -fsSL https://raw.githubusercontent.com/abenable/student-pa/main/install.sh | bash
 ```
 
-### 2. Build & Start
+Non-interactive / headless:
+```bash
+export LITELLM_API_KEY="sk-your-key"
+export TELEGRAM_BOT_TOKEN="optional-bot-token"
+curl -fsSL https://raw.githubusercontent.com/abenable/student-pa/main/install.sh | bash -s -- --non-interactive
+```
+
+> **Note:** The repo is private. Use `gh api /repos/abenable/student-pa/contents/install.sh --jq '.content' | base64 -d | bash` instead of raw curl, or authenticate via `GH_TOKEN`.
+
+## Manual Build & Start
+
+If you prefer to clone and build from source:
 
 ```bash
+# 1. Clone
+git clone https://github.com/abenable/student-pa.git
+cd student-pa
+
+# 2. Configure
+cp .env.example .env
+# Edit .env with your LiteLLM URL and API key
+
+# 3. Build & Start
 docker compose up -d --build
 ```
 
-> **Linux users:** If LiteLLM runs on the host, `host.docker.internal` is mapped automatically via `extra_hosts`. If it runs elsewhere, set the full URL in `.env`.
-
-### 3. Initialize Hermes (first run only)
+## Initialize Hermes (first run only)
 
 ```bash
 docker exec -it student-pa-agent hermes setup --non-interactive
 ```
 
-### 4. Run a Service
+## Run a Service
 
 Hermes one-shot mode (`-z`) returns clean text — perfect for scripting:
 

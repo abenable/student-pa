@@ -1,0 +1,48 @@
+# Git
+.git/
+.gitignore
+
+# Hermes runtime data (contains secrets, memories, sessions)
+hermes-data/
+
+# Google Workspace / student auth credentials
+gws-auth/
+
+# Student uploads (PDFs, resumes, lab data)
+student-data/
+
+# Environment files (contain secrets)
+.env
+.env.local
+.env.production
+.env.example
+
+# OS / Editor
+.DS_Store
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
+# LaTeX compilation artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# CI / Docs
+.github/
+README.md
+install.sh
