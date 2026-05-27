@@ -1,40 +1,64 @@
 services:
+
+  # ── Backend (Signup Bot + Provisioner) ─────────────────────────────────────
+  # Single container that runs the Telegram onboarding bot and the FastAPI
+  # provisioner. The bot talks to the provisioner logic in-process.
+  backend:
+    build: ./worker
+    container_name: student-pa-backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SIGNUP_BOT_TOKEN=${SIGNUP_BOT_TOKEN}
+      - PROVISIONER_SECRET=${PROVISIONER_SECRET}
+      - LITELLM_BASE_URL=${LITELLM_API_BASE}
+      - LITELLM_ADMIN_KEY=${LITELLM_ADMIN_KEY}
+      - AGENT_IMAGE=${AGENT_IMAGE:-ghcr.io/abenable/student-pa:latest}
+      - AGENTS_BASE_DIR=/agents
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-gemini-1.5-pro}
+      - TELEGRAM_API_ID=${TELEGRAM_API_ID}
+      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
+      - TELEGRAM_SESSION=/data/botfather_session
+    volumes:
+      # Docker socket — needed to spin up sibling student containers
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Shared agents directory — provisioner creates per-student subdirs here
+      - ${AGENTS_BASE_DIR:-./agents}:/agents
+      # Telethon session persistence
+      - backend-data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8000:8000"
+
+  # ── Template Agent (optional reference / single-student mode) ──────────────
+  # Keep this for local dev / single-student deployments.
+  # Remove or comment out when running full multi-tenant setup.
   agent:
     build: .
     container_name: student-pa-agent
     restart: unless-stopped
-    env_file:
-      - .env
+    env_file: .env
     environment:
-      # These are referenced by Hermes config.yaml via ${VAR} substitution
       - LITELLM_API_BASE=${LITELLM_API_BASE:-http://host.docker.internal:4000}
       - LITELLM_API_KEY=${LITELLM_API_KEY:-}
       - DEFAULT_MODEL=${DEFAULT_MODEL:-gemini-1.5-pro}
-      # Hermes-specific env vars
       - HERMES_HOME=/home/hermes/.hermes
       - HERMES_INFERENCE_PROVIDER=openai
       - OPENAI_API_KEY=${LITELLM_API_KEY:-}
       - OPENAI_BASE_URL=${LITELLM_API_BASE:-http://host.docker.internal:4000}/v1
       - HERMES_MODEL=${DEFAULT_MODEL:-gemini-1.5-pro}
-      # GWS CLI config directory (auth credentials)
       - GOOGLE_WORKSPACE_CLI_CONFIG_DIR=/home/hermes/.gws
-      # Optional: Telegram gateway (fill in .env to enable)
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
       - TELEGRAM_ALLOWED_USERS=${TELEGRAM_ALLOWED_USERS:-}
       - TELEGRAM_HOME_CHANNEL=${TELEGRAM_HOME_CHANNEL:-}
     volumes:
-      # Persist Hermes configuration, memory, skills, sessions, logs
       - ./hermes-data:/home/hermes/.hermes
-      # Mount OOTB services / prompt templates
       - ./services:/app/services:ro
-      # Mount student data (resumes, lab data, etc.)
       - ./student-data:/home/hermes/student-data
-      # Persist GWS CLI auth credentials (OAuth tokens, saved logins)
       - ./gws-auth:/home/hermes/.gws
-    # Required on Linux for host.docker.internal to resolve
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    # Security hardening
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -49,3 +73,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
+volumes:
+  backend-data:
