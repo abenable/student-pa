@@ -17,7 +17,9 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
     && pip install --no-cache-dir \
         hermes-agent[youtube,web,cron,messaging] \
         pymupdf \
-        yt-dlp
+        yt-dlp \
+    && find /opt/hermes-env -name '*.so' -exec strip {} + 2>/dev/null || true \
+    && pip uninstall -y pip setuptools wheel 2>/dev/null || true
 
 # ------------------------------------------------------------------------------
 # Runtime stage — only runtime deps + copied venv + GWS CLI
@@ -26,8 +28,8 @@ FROM node:24-alpine
 
 RUN apk add --no-cache \
     python3 bash ca-certificates \
-    curl git jq wget \
-    texlive texmf-dist-latexextra \
+    curl git \
+    texlive \
     pandoc \
     libstdc++
 
@@ -37,6 +39,7 @@ ENV PATH="/opt/hermes-env/bin:$PATH"
 
 # Install GWS CLI (Google Workspace CLI)
 RUN npm install -g @googleworkspace/cli \
+    && npm cache clean --force \
     && gws --version
 
 # Create non-root user

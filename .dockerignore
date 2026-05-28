@@ -42,7 +42,10 @@ build/
 *.fdb_latexmk
 *.fls
 
-# CI / Docs
+# CI / Docs / Config
 .github/
 README.md
 install.sh
+worker/
+docker-compose.yml
+config.yaml
