@@ -122,7 +122,7 @@ def delete_agent_info(user_id: str) -> None:
 
 
 def _safe_slug(text: str, max_len: int = 20) -> str:
-    slug = re.sub(r"[^a-z0-9]", "", text.lower())
+    slug = re.sub(r"[^a-z0-9_]", "", text.lower())
     return slug[:max_len] or "agent"
 
 
@@ -458,10 +458,8 @@ async def _finish_onboarding(update: Update, context: ContextTypes.DEFAULT_TYPE)
         data = await do_provision_phase1(req)
         await _reply_text(update, context,
             f"✅ Your agent is ready!\n\n"
-            f"🤖 Bot: @{data['bot_username']}\n"
-            f"🔑 API Key: `{data['litellm_key']}`\n\n"
-            f"👉 DM @{data['bot_username']} to chat with your agent.\n\n"
-            f"_Keep your API key safe — you can use it directly with the LiteLLM API._",
+            f"🤖 Bot: @{data['bot_username']}\n\n"
+            f"👉 DM @{data['bot_username']} to chat with your agent.",
             parse_mode="Markdown",
         )
     except DuplicateAgentError as e:
