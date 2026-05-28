@@ -29,7 +29,7 @@ FROM node:24-alpine
 RUN apk add --no-cache \
     python3 bash ca-certificates \
     curl git \
-    texlive-core \
+    texlive \
     pandoc \
     libstdc++
 
