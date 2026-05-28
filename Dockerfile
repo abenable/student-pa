@@ -7,7 +7,7 @@
 FROM node:24-alpine AS builder
 
 RUN apk add --no-cache \
-    python3-dev py3-pip py3-venv \
+    python3-dev py3-pip \
     build-base linux-headers
 
 RUN python3 -m venv /opt/hermes-env
