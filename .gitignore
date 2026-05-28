@@ -28,6 +28,15 @@ __pycache__/
 dist/
 build/
 
+# Worker local data
+worker/agents/
+worker/botfather_session.session
+worker/.env
+worker/.venv/
+
+# Telethon sessions globally
+*.session
+
 # LaTeX compilation artifacts
 *.aux
 *.log

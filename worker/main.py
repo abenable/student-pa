@@ -43,18 +43,13 @@ logger = logging.getLogger(__name__)
 SIGNUP_BOT_TOKEN = os.environ["SIGNUP_BOT_TOKEN"]
 PROVISIONER_SECRET = os.environ["PROVISIONER_SECRET"]
 
-# Normalize base URL: strip trailing /v1 if present so admin API works
-_LITELLM_RAW = os.environ["LITELLM_BASE_URL"].rstrip("/")
-LITELLM_ADMIN_BASE = (
-    _LITELLM_RAW[:-3]
-    if _LITELLM_RAW.endswith("/v1")
-    else _LITELLM_RAW
-)
-LITELLM_OPENAI_BASE = f"{LITELLM_ADMIN_BASE}/v1"
+# Hardcoded LiteLLM gateway (all agents use this)
+LITELLM_OPENAI_BASE = "https://litellm.byte10x.dev/v1"
+LITELLM_ADMIN_BASE = LITELLM_OPENAI_BASE[:-3]  # strip /v1 for admin API
 LITELLM_ADMIN_KEY = os.environ["LITELLM_ADMIN_KEY"]
 AGENT_IMAGE = os.environ.get("AGENT_IMAGE", "ghcr.io/abenable/student-pa:latest")
 AGENTS_BASE_DIR = Path(os.environ.get("AGENTS_BASE_DIR", "/agents"))
-DEFAULT_MODEL = os.environ.get("DEFAULT_MODEL", "")
+DEFAULT_MODEL = os.environ.get("DEFAULT_MODEL", "Mythos")
 
 TG_API_ID = int(os.environ["TELEGRAM_API_ID"])
 TG_API_HASH = os.environ["TELEGRAM_API_HASH"]
@@ -97,25 +92,45 @@ def _agent_file(user_id: str) -> Path:
     return AGENTS_BASE_DIR / user_id / "agent.json"
 
 
+def _secrets_file(user_id: str) -> Path:
+    return AGENTS_BASE_DIR / user_id / "secrets.json"
+
+
 def load_agent_info(user_id: str) -> dict | None:
     path = _agent_file(user_id)
-    if path.exists():
-        with open(path) as f:
-            return json.load(f)
-    return None
+    if not path.exists():
+        return None
+    with open(path) as f:
+        data = json.load(f)
+    secrets_path = _secrets_file(user_id)
+    if secrets_path.exists():
+        with open(secrets_path) as f:
+            data.update(json.load(f))
+    return data
 
 
 def save_agent_info(user_id: str, data: dict) -> None:
+    _SECRET_KEYS = {"bot_token", "litellm_key"}
     path = _agent_file(user_id)
     path.parent.mkdir(parents=True, exist_ok=True)
+
+    secrets = {k: v for k, v in data.items() if k in _SECRET_KEYS}
+    public = {k: v for k, v in data.items() if k not in _SECRET_KEYS}
+
     with open(path, "w") as f:
-        json.dump(data, f, indent=2)
+        json.dump(public, f, indent=2)
+
+    if secrets:
+        secrets_path = _secrets_file(user_id)
+        with open(secrets_path, "w") as f:
+            json.dump(secrets, f, indent=2)
+        secrets_path.chmod(0o600)
 
 
 def delete_agent_info(user_id: str) -> None:
-    path = _agent_file(user_id)
-    if path.exists():
-        path.unlink()
+    for p in (_agent_file(user_id), _secrets_file(user_id)):
+        if p.exists():
+            p.unlink()
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -153,6 +168,20 @@ async def create_litellm_key(student_id: str, agent_name: str) -> str:
         return resp.json()["key"]
 
 
+async def _wait_for_botfather_reply(
+    client: TelegramClient, bf_entity, after_id: int, timeout: int = 20
+) -> str:
+    """Poll BotFather for a new message after `after_id`, returning its text."""
+    deadline = asyncio.get_event_loop().time() + timeout
+    while asyncio.get_event_loop().time() < deadline:
+        msgs = await client.get_messages(bf_entity, limit=3)
+        for msg in msgs:
+            if msg.id > after_id and msg.text:
+                return msg.text
+        await asyncio.sleep(1)
+    raise BotFatherError("Timed out waiting for BotFather reply")
+
+
 async def create_telegram_bot(agent_name: str, suffix: str) -> tuple[str, str]:
     """Drive BotFather via Telethon to create a new bot. Returns (token, username)."""
     bot_username = f"{_safe_slug(agent_name)}_{suffix}_bot"
@@ -167,33 +196,39 @@ async def create_telegram_bot(agent_name: str, suffix: str) -> tuple[str, str]:
         bf = await client(ResolveUsernameRequest("BotFather"))
         bf_entity = bf.peer
 
+        # Get current last message ID so we can detect new replies
+        seed_msgs = await client.get_messages(bf_entity, limit=1)
+        last_id = seed_msgs[0].id if seed_msgs else 0
+
         await client.send_message(bf_entity, "/newbot")
-        await asyncio.sleep(2)
+        reply = await _wait_for_botfather_reply(client, bf_entity, last_id)
+        last_id = (await client.get_messages(bf_entity, limit=1))[0].id
+
+        if "already" in reply.lower() or "error" in reply.lower():
+            raise BotFatherError(f"BotFather error after /newbot: {reply[:200]}")
 
         await client.send_message(bf_entity, agent_name)
-        await asyncio.sleep(2)
+        await _wait_for_botfather_reply(client, bf_entity, last_id)
+        last_id = (await client.get_messages(bf_entity, limit=1))[0].id
 
         await client.send_message(bf_entity, bot_username)
-        await asyncio.sleep(3)
+        final_reply = await _wait_for_botfather_reply(client, bf_entity, last_id)
 
-        msgs = await client.get_messages(bf_entity, limit=5)
         token = None
         actual_username = bot_username
 
-        for msg in msgs:
-            if msg.text and "HTTP API:" in msg.text:
-                match = re.search(r"(\d+:[A-Za-z0-9_-]{35,})", msg.text)
-                if match:
-                    token = match.group(1)
-                username_match = re.search(r"@(\w+_bot)", msg.text)
-                if username_match:
-                    actual_username = username_match.group(1)
-                break
+        if "HTTP API:" in final_reply:
+            match = re.search(r"(\d+:[A-Za-z0-9_-]{35,})", final_reply)
+            if match:
+                token = match.group(1)
+            username_match = re.search(r"@(\w+_bot)", final_reply)
+            if username_match:
+                actual_username = username_match.group(1)
 
         if not token:
             raise BotFatherError(
                 f"BotFather did not return a token for @{bot_username}. "
-                "The username may already be taken."
+                f"Response: {final_reply[:200]}"
             )
 
     return token, actual_username
@@ -252,7 +287,16 @@ def spin_up_container(
         cap_add=["DAC_OVERRIDE", "CHOWN", "FOWNER"],
     )
 
-    time.sleep(5)
+    # Wait until container is running (up to 30s)
+    deadline = time.time() + 30
+    while time.time() < deadline:
+        container.reload()
+        if container.status == "running":
+            break
+        time.sleep(1)
+    else:
+        raise RuntimeError(f"Container {container_name} did not reach running state in 30s")
+
     result = container.exec_run("hermes setup --non-interactive", user="hermes")
     logger.info(
         "hermes setup exit=%d: %s", result.exit_code, result.output.decode()[:500]
@@ -268,7 +312,8 @@ def spin_up_container(
 async def do_provision_phase1(req: ProvisionRequest) -> dict:
     """Create the Telegram bot and LiteLLM key. Does NOT spin up Docker."""
     suffix = _random_suffix(4)
-    container_name = f"student-pa-{suffix}"
+    agent_slug = _safe_slug(req.agent_name)
+    container_name = f"student-pa-{agent_slug}-{suffix}"
 
     logger.info(
         "Phase 1 provisioning for user %s → bot_suffix=%s",
@@ -456,6 +501,8 @@ async def _finish_onboarding(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     try:
         data = await do_provision_phase1(req)
+        # Phase 2: spin up the container
+        data = await do_provision_phase2(req.telegram_user_id)
         await _reply_text(update, context,
             f"✅ Your agent is ready!\n\n"
             f"🤖 Bot: @{data['bot_username']}\n\n"

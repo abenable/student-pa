@@ -1,0 +1,41 @@
+services:
+  agent:
+    build: .
+    # The worker names containers dynamically: student-pa-{agent_name}-{suffix}
+    # For standalone dev mode, override via: AGENT_NAME=myagent docker compose up -d
+    container_name: student-pa-${AGENT_NAME:-agent}
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      # LiteLLM is hardcoded for all agents; API key provisioned per-student by worker
+      - LITELLM_API_BASE=https://litellm.byte10x.dev/v1
+      - LITELLM_API_KEY=${LITELLM_API_KEY:-}
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-Mythos}
+      - HERMES_HOME=/home/hermes/.hermes
+      - HERMES_INFERENCE_PROVIDER=openai
+      - HERMES_MODEL=${DEFAULT_MODEL:-gemini-1.5-pro}
+      - GOOGLE_WORKSPACE_CLI_CONFIG_DIR=/home/hermes/.gws
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_ALLOWED_USERS=${TELEGRAM_ALLOWED_USERS:-}
+      - TELEGRAM_HOME_CHANNEL=${TELEGRAM_HOME_CHANNEL:-}
+    volumes:
+      - ../hermes-data:/home/hermes/.hermes
+      - ./services:/app/services:ro
+      - ../student-data:/home/hermes/student-data
+      - ../gws-auth:/home/hermes/.gws
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - DAC_OVERRIDE
+      - CHOWN
+      - FOWNER
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import hermes_agent"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

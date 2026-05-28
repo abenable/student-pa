@@ -29,7 +29,7 @@ FROM node:24-alpine
 RUN apk add --no-cache \
     python3 bash ca-certificates \
     curl git \
-    texlive \
+    texlive-core \
     pandoc \
     libstdc++
 
@@ -38,7 +38,7 @@ COPY --from=builder /opt/hermes-env /opt/hermes-env
 ENV PATH="/opt/hermes-env/bin:$PATH"
 
 # Install GWS CLI (Google Workspace CLI)
-RUN npm install -g @googleworkspace/cli \
+RUN npm install -g @googleworkspace/cli@0.22.5 \
     && npm cache clean --force \
     && gws --version
 

@@ -9,7 +9,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY main.py .
+COPY main.py auth_telethon.py ./
 
 RUN mkdir -p /data /agents
 

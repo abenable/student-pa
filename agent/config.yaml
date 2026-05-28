@@ -4,11 +4,11 @@
 
 model:
   provider: openai
-  name: ${DEFAULT_MODEL}
+  name: ${DEFAULT_MODEL:-Mythos}
 
 providers:
   openai:
-    base_url: ${LITELLM_API_BASE}/v1
+    base_url: https://litellm.byte10x.dev/v1
     api_key: ${LITELLM_API_KEY}
 
 terminal:
