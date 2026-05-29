@@ -402,6 +402,10 @@ async def lifespan(app: FastAPI):
 api = FastAPI(lifespan=lifespan)
 
 
+class Phase2Request(BaseModel):
+    telegram_user_id: str
+
+
 @api.post("/provision")
 async def provision(req: ProvisionRequest, x_secret: str = Header(...)):
     if x_secret != PROVISIONER_SECRET:
@@ -410,6 +414,18 @@ async def provision(req: ProvisionRequest, x_secret: str = Header(...)):
         return await do_provision_phase1(req)
     except DuplicateAgentError as e:
         raise HTTPException(status_code=409, detail=str(e))
+
+
+@api.post("/provision/phase2")
+async def provision_phase2(req: Phase2Request, x_secret: str = Header(...)):
+    if x_secret != PROVISIONER_SECRET:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    try:
+        return await do_provision_phase2(req.telegram_user_id)
+    except DuplicateAgentError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @api.get("/health")
