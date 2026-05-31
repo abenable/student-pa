@@ -7,6 +7,7 @@ import {
   BookOpen,
   Video,
   ChevronDown,
+  Sparkles,
 } from 'lucide-react'
 import { Button } from '#/components/ui/button'
 import { ModeToggle } from '#/components/mode-toggle'
@@ -46,6 +47,7 @@ function Home() {
     ? [
         { label: 'Dashboard', to: '/dashboard' as const },
         { label: 'Services', to: '/dashboard/services' as const },
+        { label: 'Pricing', to: '/pricing' as const },
         { label: 'Settings', to: '/dashboard/settings' as const },
         ...(isAdmin ? [{ label: 'Admin', to: '/dashboard/admin' as const }] : []),
       ]
@@ -90,12 +92,12 @@ function Home() {
   ]
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans antialiased">
+    <div className="min-h-screen bg-background text-foreground font-sans antialiased overflow-x-hidden">
       {/* Section 1: Primary Nav */}
-      <nav className="sticky top-0 z-50 h-12 bg-black flex items-center justify-between px-4 md:px-6">
+      <nav className="sticky top-0 z-50 h-12 bg-black/90 backdrop-blur-md flex items-center justify-between px-4 md:px-6 border-b border-white/5">
         <Link
           to="/"
-          className="!text-white font-bold text-sm tracking-[0.4px] hover:!text-white/80"
+          className="!text-white font-bold text-sm tracking-[0.4px] hover:!text-white/80 transition-colors"
         >
           AgentHub
         </Link>
@@ -106,9 +108,10 @@ function Home() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white"
+                  className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group"
                 >
                   {link.label}
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
                 </Link>
               ))
             : navLinks.map((link: any) =>
@@ -116,17 +119,19 @@ function Home() {
                   <Link
                     key={link.to}
                     to={link.to}
-                    className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white"
+                    className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group"
                   >
                     {link.label}
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
                   </Link>
                 ) : (
                   <a
                     key={link.href}
                     href={link.href}
-                    className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white"
+                    className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group"
                   >
                     {link.label}
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
                   </a>
                 )
               )}
@@ -138,16 +143,16 @@ function Home() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen((prev) => !prev)}
-                className="flex items-center gap-1.5 outline-none"
+                className="flex items-center gap-1.5 outline-none group"
                 aria-label="User menu"
               >
-                <div className="h-8 w-8 rounded-full bg-white/10 text-white flex items-center justify-center text-xs font-semibold">
+                <div className="h-8 w-8 rounded-full bg-white/10 text-white flex items-center justify-center text-xs font-semibold transition-transform group-hover:scale-105">
                   {initials}
                 </div>
-                <ChevronDown className="h-4 w-4 text-white/70" />
+                <ChevronDown className="h-4 w-4 text-white/70 transition-transform duration-200" style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
               </button>
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#181818] rounded-lg shadow-lg border border-black/10 dark:border-white/10 py-2 z-50">
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#181818] rounded-lg shadow-lg border border-black/10 dark:border-white/10 py-2 z-50 animate-scale-in">
                   <div className="px-4 py-2 border-b border-black/5 dark:border-white/10">
                     <p className="text-sm font-semibold text-black dark:text-white truncate">
                       {session?.user?.name || 'User'}
@@ -191,75 +196,87 @@ function Home() {
         </div>
       </nav>
 
-      {/* Section 2: Hero Band */}
-      <section className="bg-background text-foreground py-16 md:py-20">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-12">
-            {/* Left side */}
-            <div className="w-full md:w-[55%]">
-              <span className="text-xs font-bold tracking-[0.16em] uppercase text-foreground/70 block mb-4">
-                AI-POWERED STUDENT ASSISTANT
-              </span>
-              <h1 className="text-[32px] md:text-[44px] font-light leading-[1.2] tracking-[-0.1px] font-['Roboto']">
-                Your Personal AI Agent for University Life
-              </h1>
-              <p className="text-base md:text-lg leading-snug text-foreground/70 mt-4 whitespace-normal" style={{ maxWidth: '480px' }}>
-                Automate your inbox, calendar, lab reports, job applications, and
-                research. One agent. Every task.
-              </p>
-              <div className="flex flex-wrap items-center gap-4 mt-6">
-                <Link to="/register">
-                  <Button className="bg-[#0070d1] hover:bg-[#0064b7] text-white rounded-full px-8 h-12 text-lg font-bold">
-                    Get Started
-                  </Button>
-                </Link>
-                <a href="#features">
-                  <Button
-                    variant="outline"
-                    className="border-foreground/20 hover:bg-foreground/5 text-foreground rounded-full px-8 h-12 text-lg font-bold"
-                  >
-                    Learn More
-                  </Button>
-                </a>
-              </div>
-            </div>
+      {/* Section 2: Hero Band - Full-bleed background image */}
+      <section className="relative text-white min-h-[500px] md:min-h-[600px] flex items-center overflow-hidden">
+        {/* Background image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/hero.png"
+            alt=""
+            className="w-full h-full object-cover object-right md:object-center"
+          />
+          {/* Strong left overlay where text lives, fading out toward right */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.2) 65%, rgba(0,0,0,0) 100%)',
+            }}
+          />
+          {/* Bottom vignette */}
+          <div
+            className="absolute inset-x-0 bottom-0 h-20"
+            style={{
+              background: 'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 100%)',
+            }}
+          />
+        </div>
 
-            {/* Right side */}
-            <div className="w-full md:w-[45%]">
-              <div className="rounded-lg overflow-hidden border border-foreground/5">
-                <img
-                  src="/hero.png"
-                  alt="AgentHub Hero"
-                  className="w-full h-auto object-cover"
-                />
-              </div>
+        <div className="relative z-10 max-w-6xl mx-auto px-6 w-full py-16">
+          <div className="max-w-3xl">
+            <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.16em] uppercase text-white/90 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1.5 mb-5 animate-fade-in-up">
+              <Sparkles className="w-3.5 h-3.5" />
+              AI-Powered Student Assistant
+            </span>
+            <h1 className="text-[34px] md:text-[46px] font-medium leading-[1.15] tracking-[-0.5px] font-['Roboto'] animate-fade-in-up delay-100" style={{ textWrap: 'balance' }}>
+              Your Personal AI Agent for University Life
+            </h1>
+            <p className="text-base md:text-lg leading-relaxed text-white/80 mt-5 animate-fade-in-up delay-200" style={{ textWrap: 'balance' }}>
+              Automate your inbox, calendar, lab reports, job applications, and research. One agent. Every task.
+            </p>
+            <div className="flex flex-wrap items-center gap-4 mt-8 animate-fade-in-up delay-300">
+              <Link to="/register">
+                <Button className="bg-[#0070d1] hover:bg-[#0064b7] text-white rounded-full px-8 h-12 text-lg font-bold transition-transform hover:scale-105 active:scale-95">
+                  Get Started
+                </Button>
+              </Link>
+              <a href="#features">
+                <Button
+                  variant="outline"
+                  className="border-white/30 hover:bg-white/10 text-white rounded-full px-8 h-12 text-lg font-bold transition-transform hover:scale-105 active:scale-95"
+                >
+                  Learn More
+                </Button>
+              </a>
             </div>
           </div>
         </div>
       </section>
 
       {/* Section 3: Feature Band */}
-      <section id="features" className="bg-white dark:bg-black text-black dark:text-white py-16">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-[28px] md:text-[40px] font-light leading-[1.2] tracking-[0.1px] font-['Roboto']">
+      <section id="features" className="relative bg-white dark:bg-black text-black dark:text-white py-20 overflow-hidden">
+        <div className="max-w-6xl mx-auto px-6 relative">
+          <h2 className="text-[28px] md:text-[44px] font-light leading-[1.15] tracking-[-0.5px] font-['Roboto'] animate-fade-in-up">
             Everything a Student Needs
           </h2>
-          <p className="text-base leading-snug text-black/60 dark:text-white/60 mt-3 max-w-2xl">
+          <p className="text-base leading-snug text-black/60 dark:text-white/60 mt-3 max-w-2xl animate-fade-in-up delay-100">
             Five powerful workflows, one intelligent agent.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
-            {features.map((feature) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            {features.map((feature, i) => (
               <div
                 key={feature.title}
-                className="bg-[#f5f7fa] dark:bg-[#181818] rounded-lg p-6 transition-transform hover:-translate-y-1"
+                className="group bg-[#f5f7fa] dark:bg-[#181818] rounded-xl p-6 card-hover-lift card-glow cursor-default animate-fade-in-up"
+                style={{ animationDelay: `${200 + i * 100}ms` }}
               >
-                <feature.icon
-                  size={48}
-                  strokeWidth={1.5}
-                  className="text-[#0070d1]"
-                />
-                <h3 className="text-[20px] md:text-[22px] font-light leading-[1.25] tracking-[0.1px] mt-4 text-black dark:text-white">
+                <div className="w-12 h-12 rounded-xl bg-[#0070d1]/10 flex items-center justify-center mb-4 transition-all duration-300 group-hover:bg-[#0070d1]/20 group-hover:scale-110">
+                  <feature.icon
+                    size={28}
+                    strokeWidth={1.5}
+                    className="text-[#0070d1] transition-transform duration-300 group-hover:scale-110"
+                  />
+                </div>
+                <h3 className="text-[20px] md:text-[22px] font-medium leading-[1.25] tracking-[-0.2px] text-black dark:text-white">
                   {feature.title}
                 </h3>
                 <p className="text-sm leading-snug text-black/60 dark:text-white/60 mt-2">
@@ -271,18 +288,22 @@ function Home() {
         </div>
       </section>
 
-      {/* Section 4: CTA Band (PlayStation Blue) */}
-      <section id="cta" className="bg-[#0070d1] text-white py-16">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <h2 className="text-[28px] md:text-[40px] font-light leading-[1.2] tracking-[0.1px] font-['Roboto']">
+      {/* Section 4: CTA Band */}
+      <section id="cta" className="relative bg-[#0070d1] text-white py-14 overflow-hidden">
+        {/* Animated mesh overlay */}
+        <div className="absolute inset-0 pointer-events-none opacity-30">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5 animate-gradient-shift" style={{ backgroundSize: '200% 200%' }} />
+        </div>
+        <div className="relative max-w-6xl mx-auto px-6 text-center">
+          <h2 className="text-[28px] md:text-[44px] font-light leading-[1.15] tracking-[-0.5px] font-['Roboto'] animate-fade-in-up">
             Ready to Meet Your Agent?
           </h2>
-          <p className="text-base md:text-lg leading-snug text-white/80 mt-3 max-w-2xl mx-auto">
+          <p className="text-base md:text-lg leading-snug text-white/80 mt-4 max-w-2xl mx-auto animate-fade-in-up delay-100">
             Set up your personal AI assistant in under a minute. No coding required.
           </p>
-          <div className="mt-8">
+          <div className="mt-10 animate-fade-in-up delay-200">
             <Link to="/register">
-              <Button className="text-[#0070d1] bg-white hover:bg-white/90 rounded-full px-10 h-12 text-lg font-bold">
+              <Button className="text-[#0070d1] bg-white hover:bg-white/95 rounded-full px-10 h-12 text-lg font-bold transition-all hover:scale-105 active:scale-95 shadow-xl shadow-black/10">
                 Get Started Free
               </Button>
             </Link>
@@ -290,30 +311,29 @@ function Home() {
         </div>
       </section>
 
-      {/* Section 5: Footer (PlayStation Blue) */}
-      <footer className="bg-[#0070d1] text-white py-12 border-t border-white/10">
+      {/* Section 5: Footer */}
+      <footer className="bg-background text-foreground py-4 border-t border-border">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="text-2xl font-bold">AgentHub</div>
-          <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <span className="text-sm text-white/80">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+            <span className="text-xs text-muted-foreground">
               &copy; 2026 AgentHub. Student intelligence, redefined.
             </span>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-5">
               <Link
                 to="/"
-                className="text-white/80 hover:text-white text-sm transition-colors"
+                className="text-muted-foreground hover:text-foreground text-xs transition-colors"
               >
                 Privacy
               </Link>
               <Link
                 to="/"
-                className="text-white/80 hover:text-white text-sm transition-colors"
+                className="text-muted-foreground hover:text-foreground text-xs transition-colors"
               >
                 Terms
               </Link>
               <Link
                 to="/"
-                className="text-white/80 hover:text-white text-sm transition-colors"
+                className="text-muted-foreground hover:text-foreground text-xs transition-colors"
               >
                 Support
               </Link>

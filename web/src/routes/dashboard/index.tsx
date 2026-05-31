@@ -6,6 +6,9 @@ import {
   Clock,
   CheckCircle,
   Activity,
+  Sparkles,
+  ArrowRight,
+  Bot,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/dashboard/')({
@@ -30,7 +33,6 @@ function DashboardIndex() {
         }
         const data = await res.json()
         const userRole = data.role || (session?.user as any)?.role
-        // Admin or skipped onboarding: stay on dashboard
         if (userRole === 'admin' || data.onboardingSkipped) {
           setHasAgent(false)
           setLoading(false)
@@ -41,7 +43,6 @@ function DashboardIndex() {
           setLoading(false)
           return
         }
-        // No agent, redirect to onboarding
         navigate({ to: '/dashboard/onboarding', replace: true })
       } catch {
         setHasAgent(false)
@@ -56,7 +57,7 @@ function DashboardIndex() {
   if (loading) {
     return (
       <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
-        <div className="h-8 w-8 border-4 border-neutral-200 border-t-[#0070d1] rounded-full animate-spin" />
+        <div className="h-10 w-10 border-4 border-neutral-200 border-t-[#0070d1] rounded-full animate-spin" />
       </div>
     )
   }
@@ -64,35 +65,47 @@ function DashboardIndex() {
   return (
     <div className="max-w-5xl mx-auto px-6 py-12">
       {/* A. Welcome Header */}
-      <header>
-        <h1 className="text-[44px] font-light leading-[1.25] tracking-[0.1px] font-['Roboto'] text-black dark:text-white">
-          Welcome back, {name}
-        </h1>
-        <p className="text-lg text-black/60 dark:text-white/60 leading-[1.5] mt-2">
+      <header className="animate-fade-in-up">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="h-10 w-10 rounded-xl bg-[#0070d1]/10 flex items-center justify-center">
+            <Bot className="h-5 w-5 text-[#0070d1]" />
+          </div>
+          <h1 className="text-[36px] md:text-[44px] font-light leading-[1.15] tracking-[-0.5px] font-['Roboto'] text-black dark:text-white">
+            Welcome back, {name}
+          </h1>
+        </div>
+        <p className="text-lg text-black/60 dark:text-white/60 leading-[1.5] mt-1">
           Here's what's happening with your agent.
         </p>
       </header>
 
       {/* B. Agent Status Card */}
-      <section className="bg-[#f5f7fa] dark:bg-[#181818] rounded-lg p-6 mt-8">
+      <section className="bg-[#f5f7fa] dark:bg-[#181818] rounded-xl p-6 mt-8 card-hover-lift animate-fade-in-up delay-100">
         <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
           <div className="flex-1">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-700 dark:text-green-300 text-sm font-medium">
-              <span className="h-2 w-2 rounded-full bg-green-500" />
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 text-green-700 dark:text-green-300 text-sm font-medium">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+              </span>
               Online
             </div>
             <p className="mt-3 text-xl font-semibold text-black dark:text-white">Your agent is ready</p>
-            <p className="mt-1 text-sm text-black/60 dark:text-white/60">Model: Mythos Agent</p>
+            <p className="mt-1 text-sm text-black/60 dark:text-white/60 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#0070d1]" />
+              Model: Mythos Agent
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <Link
               to="/dashboard/services"
-              className="bg-[#0070d1] text-white rounded-full px-7 py-3 h-12 font-bold text-lg inline-flex items-center hover:bg-[#005bb5] transition-colors"
+              className="bg-[#0070d1] text-white rounded-full px-7 py-3 h-12 font-bold text-lg inline-flex items-center gap-2 hover:bg-[#005bb5] transition-all hover:scale-105 active:scale-95"
             >
               Run a Service
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <button
-              className="rounded-full px-7 py-3 h-12 font-bold text-lg inline-flex items-center border border-black/20 dark:border-white/20 text-black dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              className="rounded-full px-7 py-3 h-12 font-bold text-lg inline-flex items-center border border-black/20 dark:border-white/20 text-black dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all hover:scale-105 active:scale-95"
             >
               Restart
             </button>
@@ -102,9 +115,9 @@ function DashboardIndex() {
 
       {/* C. Stats Row */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-        <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-lg p-6">
+        <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-xl p-6 card-hover-lift animate-fade-in-up delay-200">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-[#0070d1]/10 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-full bg-[#0070d1]/10 flex items-center justify-center transition-transform hover:scale-110">
               <Zap className="h-5 w-5 text-[#0070d1]" />
             </div>
             <div>
@@ -115,9 +128,9 @@ function DashboardIndex() {
           <p className="mt-3 text-xs text-black/50 dark:text-white/50">Completed tasks</p>
         </div>
 
-        <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-lg p-6">
+        <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-xl p-6 card-hover-lift animate-fade-in-up delay-300">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-[#0070d1]/10 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-full bg-[#0070d1]/10 flex items-center justify-center transition-transform hover:scale-110">
               <Clock className="h-5 w-5 text-[#0070d1]" />
             </div>
             <div>
@@ -128,9 +141,9 @@ function DashboardIndex() {
           <p className="mt-3 text-xs text-black/50 dark:text-white/50">Hours online</p>
         </div>
 
-        <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-lg p-6">
+        <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-xl p-6 card-hover-lift animate-fade-in-up delay-400">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-[#0070d1]/10 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-full bg-[#0070d1]/10 flex items-center justify-center transition-transform hover:scale-110">
               <CheckCircle className="h-5 w-5 text-[#0070d1]" />
             </div>
             <div>
@@ -143,20 +156,23 @@ function DashboardIndex() {
       </section>
 
       {/* D. Activity Feed */}
-      <section className="mt-8">
+      <section className="mt-8 animate-fade-in-up delay-500">
         <h2 className="text-[22px] font-light leading-[1.25] tracking-[0.1px] text-black dark:text-white">
           Recent Activity
         </h2>
-        <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-lg p-8 text-center mt-4">
-          <Activity className="h-12 w-12 text-[#0070d1] mx-auto" />
+        <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-xl p-8 text-center mt-4 transition-all hover:shadow-lg">
+          <div className="w-14 h-14 rounded-full bg-[#0070d1]/10 flex items-center justify-center mx-auto animate-bounce-subtle">
+            <Activity className="h-7 w-7 text-[#0070d1]" />
+          </div>
           <p className="mt-4 text-black/60 dark:text-white/60">
             No activity yet. Run a service to see results here.
           </p>
           <Link
             to="/dashboard/services"
-            className="inline-block mt-3 text-[#0070d1] font-medium hover:underline"
+            className="inline-flex items-center gap-1.5 mt-3 text-[#0070d1] font-medium hover:underline transition-transform hover:translate-x-0.5"
           >
             Go to Services
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </section>
