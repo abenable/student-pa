@@ -1,7 +1,7 @@
 services:
   backend:
     build: .
-    container_name: student-pa-backend
+    container_name: student-pa-worker
     restart: unless-stopped
     env_file: ../.env
     environment:

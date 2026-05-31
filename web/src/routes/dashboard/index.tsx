@@ -209,30 +209,69 @@ function DashboardIndex() {
             <h2 className="text-base font-semibold text-black dark:text-white">Complete your setup</h2>
           </div>
           <ul className="space-y-3">
+            {/* Create account */}
             <li className="flex items-center gap-3">
               <span className="h-5 w-5 rounded-full border-2 border-[#0070d1] bg-[#0070d1] flex items-center justify-center shrink-0">
                 <CheckCircle className="h-3 w-3 text-white" />
               </span>
               <span className="text-sm text-black/70 dark:text-white/70 line-through">Create your account</span>
             </li>
+
+            {/* Request agent */}
+            <li className="flex items-center gap-3">
+              {agent ? (
+                <>
+                  <span className="h-5 w-5 rounded-full border-2 border-[#0070d1] bg-[#0070d1] flex items-center justify-center shrink-0">
+                    <CheckCircle className="h-3 w-3 text-white" />
+                  </span>
+                  <span className="text-sm text-black/70 dark:text-white/70 line-through">
+                    {agent.status === 'PENDING_APPROVAL' ? 'Agent requested (pending approval)' : 'Agent requested'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="h-5 w-5 rounded-full border-2 border-black/20 dark:border-white/20 shrink-0" />
+                  <span className="text-sm text-black dark:text-white">Request your agent</span>
+                  <Link to="/dashboard/onboarding" className="ml-auto text-xs text-[#0070d1] font-medium hover:underline">
+                    Start →
+                  </Link>
+                </>
+              )}
+            </li>
+
+            {/* Connect Telegram */}
+            <li className="flex items-center gap-3">
+              <span className={`h-5 w-5 rounded-full border-2 shrink-0 ${agent?.status === 'RUNNING' ? 'border-black/20 dark:border-white/20' : 'border-black/20 dark:border-white/20'}`} />
+              <span className={`text-sm ${agent?.status === 'RUNNING' ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}>
+                Connect your Telegram bot
+              </span>
+              {agent?.status === 'RUNNING' && (
+                <Link to="/dashboard/settings" className="ml-auto text-xs text-[#0070d1] font-medium hover:underline">
+                  Settings →
+                </Link>
+              )}
+            </li>
+
+            {/* Run first service */}
+            <li className="flex items-center gap-3">
+              <span className={`h-5 w-5 rounded-full border-2 shrink-0 ${agent?.status === 'RUNNING' ? 'border-black/20 dark:border-white/20' : 'border-black/20 dark:border-white/20'}`} />
+              <span className={`text-sm ${agent?.status === 'RUNNING' ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}>
+                Run your first service
+              </span>
+              {agent?.status === 'RUNNING' && (
+                <Link to="/dashboard/services" className="ml-auto text-xs text-[#0070d1] font-medium hover:underline">
+                  Services →
+                </Link>
+              )}
+            </li>
+
+            {/* Invite friend */}
             <li className="flex items-center gap-3">
               <span className="h-5 w-5 rounded-full border-2 border-black/20 dark:border-white/20 shrink-0" />
-              <span className="text-sm text-black dark:text-white">Request your agent</span>
-              <Link to="/dashboard/onboarding" className="ml-auto text-xs text-[#0070d1] font-medium hover:underline">
-                Start →
+              <span className="text-sm text-black dark:text-white">Invite a friend and earn a free week</span>
+              <Link to="/dashboard/settings" className="ml-auto text-xs text-[#0070d1] font-medium hover:underline">
+                Refer →
               </Link>
-            </li>
-            <li className="flex items-center gap-3">
-              <span className="h-5 w-5 rounded-full border-2 border-black/20 dark:border-white/20 shrink-0" />
-              <span className="text-sm text-black/50 dark:text-white/50">Connect your Telegram bot</span>
-            </li>
-            <li className="flex items-center gap-3">
-              <span className="h-5 w-5 rounded-full border-2 border-black/20 dark:border-white/20 shrink-0" />
-              <span className="text-sm text-black/50 dark:text-white/50">Run your first service</span>
-            </li>
-            <li className="flex items-center gap-3">
-              <span className="h-5 w-5 rounded-full border-2 border-black/20 dark:border-white/20 shrink-0" />
-              <span className="text-sm text-black/50 dark:text-white/50">Invite a friend and earn a free week</span>
             </li>
           </ul>
         </section>
