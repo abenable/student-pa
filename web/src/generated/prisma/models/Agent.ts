@@ -35,6 +35,8 @@ export type AgentMinAggregateOutputType = {
   botToken: string | null
   litellmKey: string | null
   status: $Enums.AgentStatus | null
+  approvedAt: Date | null
+  approvedBy: string | null
   containerRunning: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -51,6 +53,8 @@ export type AgentMaxAggregateOutputType = {
   botToken: string | null
   litellmKey: string | null
   status: $Enums.AgentStatus | null
+  approvedAt: Date | null
+  approvedBy: string | null
   containerRunning: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -67,6 +71,8 @@ export type AgentCountAggregateOutputType = {
   botToken: number
   litellmKey: number
   status: number
+  approvedAt: number
+  approvedBy: number
   containerRunning: number
   createdAt: number
   updatedAt: number
@@ -85,6 +91,8 @@ export type AgentMinAggregateInputType = {
   botToken?: true
   litellmKey?: true
   status?: true
+  approvedAt?: true
+  approvedBy?: true
   containerRunning?: true
   createdAt?: true
   updatedAt?: true
@@ -101,6 +109,8 @@ export type AgentMaxAggregateInputType = {
   botToken?: true
   litellmKey?: true
   status?: true
+  approvedAt?: true
+  approvedBy?: true
   containerRunning?: true
   createdAt?: true
   updatedAt?: true
@@ -117,6 +127,8 @@ export type AgentCountAggregateInputType = {
   botToken?: true
   litellmKey?: true
   status?: true
+  approvedAt?: true
+  approvedBy?: true
   containerRunning?: true
   createdAt?: true
   updatedAt?: true
@@ -206,6 +218,8 @@ export type AgentGroupByOutputType = {
   botToken: string | null
   litellmKey: string | null
   status: $Enums.AgentStatus
+  approvedAt: Date | null
+  approvedBy: string | null
   containerRunning: boolean
   createdAt: Date
   updatedAt: Date
@@ -243,6 +257,8 @@ export type AgentWhereInput = {
   botToken?: Prisma.StringNullableFilter<"Agent"> | string | null
   litellmKey?: Prisma.StringNullableFilter<"Agent"> | string | null
   status?: Prisma.EnumAgentStatusFilter<"Agent"> | $Enums.AgentStatus
+  approvedAt?: Prisma.DateTimeNullableFilter<"Agent"> | Date | string | null
+  approvedBy?: Prisma.StringNullableFilter<"Agent"> | string | null
   containerRunning?: Prisma.BoolFilter<"Agent"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
@@ -262,6 +278,8 @@ export type AgentOrderByWithRelationInput = {
   botToken?: Prisma.SortOrderInput | Prisma.SortOrder
   litellmKey?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  approvedBy?: Prisma.SortOrderInput | Prisma.SortOrder
   containerRunning?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -284,6 +302,8 @@ export type AgentWhereUniqueInput = Prisma.AtLeast<{
   botToken?: Prisma.StringNullableFilter<"Agent"> | string | null
   litellmKey?: Prisma.StringNullableFilter<"Agent"> | string | null
   status?: Prisma.EnumAgentStatusFilter<"Agent"> | $Enums.AgentStatus
+  approvedAt?: Prisma.DateTimeNullableFilter<"Agent"> | Date | string | null
+  approvedBy?: Prisma.StringNullableFilter<"Agent"> | string | null
   containerRunning?: Prisma.BoolFilter<"Agent"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
@@ -303,6 +323,8 @@ export type AgentOrderByWithAggregationInput = {
   botToken?: Prisma.SortOrderInput | Prisma.SortOrder
   litellmKey?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  approvedBy?: Prisma.SortOrderInput | Prisma.SortOrder
   containerRunning?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -325,6 +347,8 @@ export type AgentScalarWhereWithAggregatesInput = {
   botToken?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   litellmKey?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   status?: Prisma.EnumAgentStatusWithAggregatesFilter<"Agent"> | $Enums.AgentStatus
+  approvedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Agent"> | Date | string | null
+  approvedBy?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   containerRunning?: Prisma.BoolWithAggregatesFilter<"Agent"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Agent"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Agent"> | Date | string
@@ -340,6 +364,8 @@ export type AgentCreateInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  approvedAt?: Date | string | null
+  approvedBy?: string | null
   containerRunning?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -359,6 +385,8 @@ export type AgentUncheckedCreateInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  approvedAt?: Date | string | null
+  approvedBy?: string | null
   containerRunning?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -376,6 +404,8 @@ export type AgentUpdateInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -395,6 +425,8 @@ export type AgentUncheckedUpdateInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -413,6 +445,8 @@ export type AgentCreateManyInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  approvedAt?: Date | string | null
+  approvedBy?: string | null
   containerRunning?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -428,6 +462,8 @@ export type AgentUpdateManyMutationInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -444,6 +480,8 @@ export type AgentUncheckedUpdateManyInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -465,6 +503,8 @@ export type AgentCountOrderByAggregateInput = {
   botToken?: Prisma.SortOrder
   litellmKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  approvedAt?: Prisma.SortOrder
+  approvedBy?: Prisma.SortOrder
   containerRunning?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -481,6 +521,8 @@ export type AgentMaxOrderByAggregateInput = {
   botToken?: Prisma.SortOrder
   litellmKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  approvedAt?: Prisma.SortOrder
+  approvedBy?: Prisma.SortOrder
   containerRunning?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -497,6 +539,8 @@ export type AgentMinOrderByAggregateInput = {
   botToken?: Prisma.SortOrder
   litellmKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  approvedAt?: Prisma.SortOrder
+  approvedBy?: Prisma.SortOrder
   containerRunning?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -581,6 +625,8 @@ export type AgentCreateWithoutUserInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  approvedAt?: Date | string | null
+  approvedBy?: string | null
   containerRunning?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -598,6 +644,8 @@ export type AgentUncheckedCreateWithoutUserInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  approvedAt?: Date | string | null
+  approvedBy?: string | null
   containerRunning?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -631,6 +679,8 @@ export type AgentUpdateWithoutUserInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -648,6 +698,8 @@ export type AgentUncheckedUpdateWithoutUserInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -665,6 +717,8 @@ export type AgentCreateWithoutServiceRunsInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  approvedAt?: Date | string | null
+  approvedBy?: string | null
   containerRunning?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -683,6 +737,8 @@ export type AgentUncheckedCreateWithoutServiceRunsInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  approvedAt?: Date | string | null
+  approvedBy?: string | null
   containerRunning?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -715,6 +771,8 @@ export type AgentUpdateWithoutServiceRunsInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -733,6 +791,8 @@ export type AgentUncheckedUpdateWithoutServiceRunsInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -749,6 +809,8 @@ export type AgentCreateWithoutChatMessagesInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  approvedAt?: Date | string | null
+  approvedBy?: string | null
   containerRunning?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -767,6 +829,8 @@ export type AgentUncheckedCreateWithoutChatMessagesInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  approvedAt?: Date | string | null
+  approvedBy?: string | null
   containerRunning?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -799,6 +863,8 @@ export type AgentUpdateWithoutChatMessagesInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -817,6 +883,8 @@ export type AgentUncheckedUpdateWithoutChatMessagesInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -874,6 +942,8 @@ export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   botToken?: boolean
   litellmKey?: boolean
   status?: boolean
+  approvedAt?: boolean
+  approvedBy?: boolean
   containerRunning?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -894,6 +964,8 @@ export type AgentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   botToken?: boolean
   litellmKey?: boolean
   status?: boolean
+  approvedAt?: boolean
+  approvedBy?: boolean
   containerRunning?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -911,6 +983,8 @@ export type AgentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   botToken?: boolean
   litellmKey?: boolean
   status?: boolean
+  approvedAt?: boolean
+  approvedBy?: boolean
   containerRunning?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -928,12 +1002,14 @@ export type AgentSelectScalar = {
   botToken?: boolean
   litellmKey?: boolean
   status?: boolean
+  approvedAt?: boolean
+  approvedBy?: boolean
   containerRunning?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "studentName" | "bio" | "containerName" | "botUsername" | "botToken" | "litellmKey" | "status" | "containerRunning" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
+export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "studentName" | "bio" | "containerName" | "botUsername" | "botToken" | "litellmKey" | "status" | "approvedAt" | "approvedBy" | "containerRunning" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
 export type AgentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   serviceRuns?: boolean | Prisma.Agent$serviceRunsArgs<ExtArgs>
@@ -965,6 +1041,8 @@ export type $AgentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     botToken: string | null
     litellmKey: string | null
     status: $Enums.AgentStatus
+    approvedAt: Date | null
+    approvedBy: string | null
     containerRunning: boolean
     createdAt: Date
     updatedAt: Date
@@ -1404,6 +1482,8 @@ export interface AgentFieldRefs {
   readonly botToken: Prisma.FieldRef<"Agent", 'String'>
   readonly litellmKey: Prisma.FieldRef<"Agent", 'String'>
   readonly status: Prisma.FieldRef<"Agent", 'AgentStatus'>
+  readonly approvedAt: Prisma.FieldRef<"Agent", 'DateTime'>
+  readonly approvedBy: Prisma.FieldRef<"Agent", 'String'>
   readonly containerRunning: Prisma.FieldRef<"Agent", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Agent", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Agent", 'DateTime'>

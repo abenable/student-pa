@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { authClient } from '#/lib/auth-client'
 import { Button } from '#/components/ui/button'
 import { CheckCircle, Loader2 } from 'lucide-react'
-import { isAdmin } from '#/lib/roles'
 
 const BIO_OPTIONS = [
   { emoji: '🎓', label: '1st year - general help', value: '1st year student looking for general academic help' },
@@ -36,23 +35,19 @@ function OnboardingPage() {
     async function checkExistingAgent() {
       try {
         const user = session?.user as any
-        // Admins and enterprise managers skip onboarding entirely
-        if (isAdmin(user?.role)) {
-          navigate({ to: '/dashboard', replace: true })
-          return
-        }
         const res = await fetch('/api/provision')
         if (res.ok) {
           const data = await res.json()
           if (data.agent) {
+            // Already has an agent — skip onboarding
             navigate({ to: '/dashboard', replace: true })
             return
           }
         }
+        setCheckingAgent(false)
       } catch {
-        // ignore
+        setCheckingAgent(false)
       }
-      setCheckingAgent(false)
     }
     if (session?.user) {
       checkExistingAgent()
@@ -85,10 +80,15 @@ function OnboardingPage() {
         throw new Error(err.message || 'Failed to create agent')
       }
 
+      // Briefly show success then redirect to dashboard
       setStep(5)
+      setTimeout(() => {
+        navigate({ to: '/dashboard', replace: true })
+      }, 1500)
     } catch (e: any) {
       setError(e.message || 'Something went wrong')
       setIsSubmitting(false)
+      setStep(3)
     }
   }
 

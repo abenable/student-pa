@@ -20,8 +20,20 @@ export type UserModel = runtime.Types.Result.DefaultSelection<Prisma.$UserPayloa
 
 export type AggregateUser = {
   _count: UserCountAggregateOutputType | null
+  _avg: UserAvgAggregateOutputType | null
+  _sum: UserSumAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
+}
+
+export type UserAvgAggregateOutputType = {
+  referralCount: number | null
+  freeWeeksEarned: number | null
+}
+
+export type UserSumAggregateOutputType = {
+  referralCount: number | null
+  freeWeeksEarned: number | null
 }
 
 export type UserMinAggregateOutputType = {
@@ -33,6 +45,11 @@ export type UserMinAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   role: string | null
+  referralCode: string | null
+  referredById: string | null
+  referralCount: number | null
+  freeWeeksEarned: number | null
+  onboardingSkipped: boolean | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -44,6 +61,11 @@ export type UserMaxAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   role: string | null
+  referralCode: string | null
+  referredById: string | null
+  referralCount: number | null
+  freeWeeksEarned: number | null
+  onboardingSkipped: boolean | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -55,9 +77,24 @@ export type UserCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   role: number
+  referralCode: number
+  referredById: number
+  referralCount: number
+  freeWeeksEarned: number
+  onboardingSkipped: number
   _all: number
 }
 
+
+export type UserAvgAggregateInputType = {
+  referralCount?: true
+  freeWeeksEarned?: true
+}
+
+export type UserSumAggregateInputType = {
+  referralCount?: true
+  freeWeeksEarned?: true
+}
 
 export type UserMinAggregateInputType = {
   id?: true
@@ -68,6 +105,11 @@ export type UserMinAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   role?: true
+  referralCode?: true
+  referredById?: true
+  referralCount?: true
+  freeWeeksEarned?: true
+  onboardingSkipped?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -79,6 +121,11 @@ export type UserMaxAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   role?: true
+  referralCode?: true
+  referredById?: true
+  referralCount?: true
+  freeWeeksEarned?: true
+  onboardingSkipped?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -90,6 +137,11 @@ export type UserCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   role?: true
+  referralCode?: true
+  referredById?: true
+  referralCount?: true
+  freeWeeksEarned?: true
+  onboardingSkipped?: true
   _all?: true
 }
 
@@ -131,6 +183,18 @@ export type UserAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: UserAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: UserSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: UserMinAggregateInputType
@@ -161,6 +225,8 @@ export type UserGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   _count?: UserCountAggregateInputType | true
+  _avg?: UserAvgAggregateInputType
+  _sum?: UserSumAggregateInputType
   _min?: UserMinAggregateInputType
   _max?: UserMaxAggregateInputType
 }
@@ -174,7 +240,14 @@ export type UserGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   role: string
+  referralCode: string | null
+  referredById: string | null
+  referralCount: number
+  freeWeeksEarned: number
+  onboardingSkipped: boolean
   _count: UserCountAggregateOutputType | null
+  _avg: UserAvgAggregateOutputType | null
+  _sum: UserSumAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
 }
@@ -206,6 +279,11 @@ export type UserWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   role?: Prisma.StringFilter<"User"> | string
+  referralCode?: Prisma.StringNullableFilter<"User"> | string | null
+  referredById?: Prisma.StringNullableFilter<"User"> | string | null
+  referralCount?: Prisma.IntFilter<"User"> | number
+  freeWeeksEarned?: Prisma.IntFilter<"User"> | number
+  onboardingSkipped?: Prisma.BoolFilter<"User"> | boolean
   sessions?: Prisma.SessionListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   agent?: Prisma.XOR<Prisma.AgentNullableScalarRelationFilter, Prisma.AgentWhereInput> | null
@@ -220,6 +298,11 @@ export type UserOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  referralCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  referredById?: Prisma.SortOrderInput | Prisma.SortOrder
+  referralCount?: Prisma.SortOrder
+  freeWeeksEarned?: Prisma.SortOrder
+  onboardingSkipped?: Prisma.SortOrder
   sessions?: Prisma.SessionOrderByRelationAggregateInput
   accounts?: Prisma.AccountOrderByRelationAggregateInput
   agent?: Prisma.AgentOrderByWithRelationInput
@@ -228,6 +311,7 @@ export type UserOrderByWithRelationInput = {
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   email?: string
+  referralCode?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
@@ -237,10 +321,14 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   role?: Prisma.StringFilter<"User"> | string
+  referredById?: Prisma.StringNullableFilter<"User"> | string | null
+  referralCount?: Prisma.IntFilter<"User"> | number
+  freeWeeksEarned?: Prisma.IntFilter<"User"> | number
+  onboardingSkipped?: Prisma.BoolFilter<"User"> | boolean
   sessions?: Prisma.SessionListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   agent?: Prisma.XOR<Prisma.AgentNullableScalarRelationFilter, Prisma.AgentWhereInput> | null
-}, "id" | "email">
+}, "id" | "email" | "referralCode">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -251,9 +339,16 @@ export type UserOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  referralCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  referredById?: Prisma.SortOrderInput | Prisma.SortOrder
+  referralCount?: Prisma.SortOrder
+  freeWeeksEarned?: Prisma.SortOrder
+  onboardingSkipped?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
+  _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
+  _sum?: Prisma.UserSumOrderByAggregateInput
 }
 
 export type UserScalarWhereWithAggregatesInput = {
@@ -268,6 +363,11 @@ export type UserScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   role?: Prisma.StringWithAggregatesFilter<"User"> | string
+  referralCode?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  referredById?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  referralCount?: Prisma.IntWithAggregatesFilter<"User"> | number
+  freeWeeksEarned?: Prisma.IntWithAggregatesFilter<"User"> | number
+  onboardingSkipped?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
 }
 
 export type UserCreateInput = {
@@ -279,6 +379,11 @@ export type UserCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string
+  referralCode?: string | null
+  referredById?: string | null
+  referralCount?: number
+  freeWeeksEarned?: number
+  onboardingSkipped?: boolean
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   agent?: Prisma.AgentCreateNestedOneWithoutUserInput
@@ -293,6 +398,11 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string
+  referralCode?: string | null
+  referredById?: string | null
+  referralCount?: number
+  freeWeeksEarned?: number
+  onboardingSkipped?: boolean
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   agent?: Prisma.AgentUncheckedCreateNestedOneWithoutUserInput
@@ -307,6 +417,11 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCount?: Prisma.IntFieldUpdateOperationsInput | number
+  freeWeeksEarned?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingSkipped?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   agent?: Prisma.AgentUpdateOneWithoutUserNestedInput
@@ -321,6 +436,11 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCount?: Prisma.IntFieldUpdateOperationsInput | number
+  freeWeeksEarned?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingSkipped?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   agent?: Prisma.AgentUncheckedUpdateOneWithoutUserNestedInput
@@ -335,6 +455,11 @@ export type UserCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string
+  referralCode?: string | null
+  referredById?: string | null
+  referralCount?: number
+  freeWeeksEarned?: number
+  onboardingSkipped?: boolean
 }
 
 export type UserUpdateManyMutationInput = {
@@ -346,6 +471,11 @@ export type UserUpdateManyMutationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCount?: Prisma.IntFieldUpdateOperationsInput | number
+  freeWeeksEarned?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingSkipped?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -357,6 +487,11 @@ export type UserUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCount?: Prisma.IntFieldUpdateOperationsInput | number
+  freeWeeksEarned?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingSkipped?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type UserCountOrderByAggregateInput = {
@@ -368,6 +503,16 @@ export type UserCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  referralCode?: Prisma.SortOrder
+  referredById?: Prisma.SortOrder
+  referralCount?: Prisma.SortOrder
+  freeWeeksEarned?: Prisma.SortOrder
+  onboardingSkipped?: Prisma.SortOrder
+}
+
+export type UserAvgOrderByAggregateInput = {
+  referralCount?: Prisma.SortOrder
+  freeWeeksEarned?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -379,6 +524,11 @@ export type UserMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  referralCode?: Prisma.SortOrder
+  referredById?: Prisma.SortOrder
+  referralCount?: Prisma.SortOrder
+  freeWeeksEarned?: Prisma.SortOrder
+  onboardingSkipped?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -390,6 +540,16 @@ export type UserMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  referralCode?: Prisma.SortOrder
+  referredById?: Prisma.SortOrder
+  referralCount?: Prisma.SortOrder
+  freeWeeksEarned?: Prisma.SortOrder
+  onboardingSkipped?: Prisma.SortOrder
+}
+
+export type UserSumOrderByAggregateInput = {
+  referralCount?: Prisma.SortOrder
+  freeWeeksEarned?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
@@ -411,6 +571,14 @@ export type BoolFieldUpdateOperationsInput = {
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type UserCreateNestedOneWithoutSessionsInput = {
@@ -464,6 +632,11 @@ export type UserCreateWithoutSessionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string
+  referralCode?: string | null
+  referredById?: string | null
+  referralCount?: number
+  freeWeeksEarned?: number
+  onboardingSkipped?: boolean
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   agent?: Prisma.AgentCreateNestedOneWithoutUserInput
 }
@@ -477,6 +650,11 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string
+  referralCode?: string | null
+  referredById?: string | null
+  referralCount?: number
+  freeWeeksEarned?: number
+  onboardingSkipped?: boolean
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   agent?: Prisma.AgentUncheckedCreateNestedOneWithoutUserInput
 }
@@ -506,6 +684,11 @@ export type UserUpdateWithoutSessionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCount?: Prisma.IntFieldUpdateOperationsInput | number
+  freeWeeksEarned?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingSkipped?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   agent?: Prisma.AgentUpdateOneWithoutUserNestedInput
 }
@@ -519,6 +702,11 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCount?: Prisma.IntFieldUpdateOperationsInput | number
+  freeWeeksEarned?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingSkipped?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   agent?: Prisma.AgentUncheckedUpdateOneWithoutUserNestedInput
 }
@@ -532,6 +720,11 @@ export type UserCreateWithoutAccountsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string
+  referralCode?: string | null
+  referredById?: string | null
+  referralCount?: number
+  freeWeeksEarned?: number
+  onboardingSkipped?: boolean
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   agent?: Prisma.AgentCreateNestedOneWithoutUserInput
 }
@@ -545,6 +738,11 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string
+  referralCode?: string | null
+  referredById?: string | null
+  referralCount?: number
+  freeWeeksEarned?: number
+  onboardingSkipped?: boolean
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   agent?: Prisma.AgentUncheckedCreateNestedOneWithoutUserInput
 }
@@ -574,6 +772,11 @@ export type UserUpdateWithoutAccountsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCount?: Prisma.IntFieldUpdateOperationsInput | number
+  freeWeeksEarned?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingSkipped?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   agent?: Prisma.AgentUpdateOneWithoutUserNestedInput
 }
@@ -587,6 +790,11 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCount?: Prisma.IntFieldUpdateOperationsInput | number
+  freeWeeksEarned?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingSkipped?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   agent?: Prisma.AgentUncheckedUpdateOneWithoutUserNestedInput
 }
@@ -600,6 +808,11 @@ export type UserCreateWithoutAgentInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string
+  referralCode?: string | null
+  referredById?: string | null
+  referralCount?: number
+  freeWeeksEarned?: number
+  onboardingSkipped?: boolean
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
 }
@@ -613,6 +826,11 @@ export type UserUncheckedCreateWithoutAgentInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string
+  referralCode?: string | null
+  referredById?: string | null
+  referralCount?: number
+  freeWeeksEarned?: number
+  onboardingSkipped?: boolean
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
 }
@@ -642,6 +860,11 @@ export type UserUpdateWithoutAgentInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCount?: Prisma.IntFieldUpdateOperationsInput | number
+  freeWeeksEarned?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingSkipped?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
 }
@@ -655,6 +878,11 @@ export type UserUncheckedUpdateWithoutAgentInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCount?: Prisma.IntFieldUpdateOperationsInput | number
+  freeWeeksEarned?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingSkipped?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -708,6 +936,11 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   role?: boolean
+  referralCode?: boolean
+  referredById?: boolean
+  referralCount?: boolean
+  freeWeeksEarned?: boolean
+  onboardingSkipped?: boolean
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   agent?: boolean | Prisma.User$agentArgs<ExtArgs>
@@ -723,6 +956,11 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   role?: boolean
+  referralCode?: boolean
+  referredById?: boolean
+  referralCount?: boolean
+  freeWeeksEarned?: boolean
+  onboardingSkipped?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -734,6 +972,11 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   role?: boolean
+  referralCode?: boolean
+  referredById?: boolean
+  referralCount?: boolean
+  freeWeeksEarned?: boolean
+  onboardingSkipped?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -745,9 +988,14 @@ export type UserSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   role?: boolean
+  referralCode?: boolean
+  referredById?: boolean
+  referralCount?: boolean
+  freeWeeksEarned?: boolean
+  onboardingSkipped?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "createdAt" | "updatedAt" | "role", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "createdAt" | "updatedAt" | "role" | "referralCode" | "referredById" | "referralCount" | "freeWeeksEarned" | "onboardingSkipped", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
@@ -773,6 +1021,11 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     createdAt: Date
     updatedAt: Date
     role: string
+    referralCode: string | null
+    referredById: string | null
+    referralCount: number
+    freeWeeksEarned: number
+    onboardingSkipped: boolean
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -1207,6 +1460,11 @@ export interface UserFieldRefs {
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly role: Prisma.FieldRef<"User", 'String'>
+  readonly referralCode: Prisma.FieldRef<"User", 'String'>
+  readonly referredById: Prisma.FieldRef<"User", 'String'>
+  readonly referralCount: Prisma.FieldRef<"User", 'Int'>
+  readonly freeWeeksEarned: Prisma.FieldRef<"User", 'Int'>
+  readonly onboardingSkipped: Prisma.FieldRef<"User", 'Boolean'>
 }
     
 

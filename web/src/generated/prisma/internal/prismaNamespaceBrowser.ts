@@ -84,7 +84,12 @@ export const UserScalarFieldEnum = {
   image: 'image',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  role: 'role'
+  role: 'role',
+  referralCode: 'referralCode',
+  referredById: 'referredById',
+  referralCount: 'referralCount',
+  freeWeeksEarned: 'freeWeeksEarned',
+  onboardingSkipped: 'onboardingSkipped'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -146,6 +151,8 @@ export const AgentScalarFieldEnum = {
   botToken: 'botToken',
   litellmKey: 'litellmKey',
   status: 'status',
+  approvedAt: 'approvedAt',
+  approvedBy: 'approvedBy',
   containerRunning: 'containerRunning',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
