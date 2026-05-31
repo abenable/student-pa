@@ -51,9 +51,9 @@ function Home() {
         { label: 'Settings', to: '/dashboard/settings' as const },
         ...(isAdmin ? [{ label: 'Admin', to: '/dashboard/admin' as const }] : []),
       ]
-    : [
+      : [
         { label: 'Features', href: '#features' },
-        { label: 'Services', href: '#services' },
+        { label: 'Services', to: '/services' },
         { label: 'Pricing', to: '/pricing' },
         { label: 'Get Started', href: '#cta' },
       ]
@@ -256,10 +256,10 @@ function Home() {
       <section id="features" className="relative bg-white dark:bg-black text-black dark:text-white py-20 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 relative">
           <h2 className="text-[28px] md:text-[44px] font-light leading-[1.15] tracking-[-0.5px] font-['Roboto'] animate-fade-in-up">
-            Everything a Student Needs
+            What Your Agent Can Do
           </h2>
           <p className="text-base leading-snug text-black/60 dark:text-white/60 mt-3 max-w-2xl animate-fade-in-up delay-100">
-            Five powerful workflows, one intelligent agent.
+            Five powerful workflow capabilities built into every agent.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">

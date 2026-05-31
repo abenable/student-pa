@@ -11,23 +11,6 @@ export const Route = createFileRoute('/pricing')({
 
 const plans = [
   {
-    name: 'Student',
-    icon: Zap,
-    price: 'Free',
-    period: '',
-    description: 'Try the agent with limited runs.',
-    cta: 'Get Started',
-    ctaLink: '/register',
-    ctaVariant: 'outline' as const,
-    audience: 'For individual students',
-    features: [
-      '3 service runs per month',
-      '1 agent profile',
-      'Email & calendar sync',
-      'Community support',
-    ],
-  },
-  {
     name: 'Individual',
     icon: Crown,
     price: 'UGX 44,000',
@@ -135,6 +118,10 @@ function PricingPage() {
                 Dashboard
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
               </Link>
+              <Link to="/services" className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group">
+                Services
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
+              </Link>
               <Link to="/pricing" className="px-3 py-1.5 text-sm font-medium transition-colors !text-white relative group">
                 Pricing
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4/5 h-0.5 bg-[#0070d1] rounded-full" />
@@ -154,6 +141,10 @@ function PricingPage() {
             <>
               <Link to="/" className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group">
                 Home
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
+              </Link>
+              <Link to="/services" className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group">
+                Services
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
               </Link>
               <Link to="/pricing" className="px-3 py-1.5 text-sm font-medium transition-colors !text-white relative group">
@@ -213,7 +204,7 @@ function PricingPage() {
             Simple, Transparent Pricing
           </h1>
           <p className="text-base leading-snug text-foreground/70 mt-4 animate-fade-in-up delay-200">
-            Start free. Upgrade when you are ready. No credit card required for the trial.
+            Start with a 7-day free trial. Upgrade when you are ready.
           </p>
         </div>
       </section>
@@ -221,13 +212,13 @@ function PricingPage() {
       {/* Pricing Cards */}
       <section className="bg-white dark:bg-black text-black dark:text-white py-12 pb-24 relative">
         <div className="mx-auto px-6" style={{ maxWidth: '1200px' }}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch max-w-5xl mx-auto">
             {plans.map((plan, i) => {
               const isCurrentPlan = isAuth && plan.name === currentPlanName
               return (
                 <div
                   key={plan.name}
-                  className={`relative bg-[#f5f7fa] dark:bg-[#181818] rounded-xl p-8 flex flex-col card-hover-lift card-glow animate-fade-in-up ${
+                  className={`relative bg-[#f5f7fa] dark:bg-[#181818] rounded-xl p-6 md:p-8 flex flex-col card-hover-lift card-glow animate-fade-in-up ${
                     plan.badge ? 'ring-2 ring-[#0070d1]' : ''
                   } ${
                     isCurrentPlan
@@ -265,7 +256,7 @@ function PricingPage() {
                   <p className="text-xs text-[#0070d1] font-semibold mb-3">{plan.audience}</p>
 
                   <div className="flex items-baseline gap-1.5 mb-2">
-                    <span className="text-[28px] md:text-[32px] font-semibold leading-none text-black dark:text-white">
+                    <span className="text-[22px] md:text-[26px] font-semibold leading-none text-black dark:text-white">
                       {plan.price}
                     </span>
                     <span className="text-black/50 dark:text-white/50 text-sm font-medium">

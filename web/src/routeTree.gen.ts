@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PricingRouteImport } from './routes/pricing'
@@ -30,6 +31,11 @@ import { Route as DashboardAdminAgentsRouteImport } from './routes/dashboard/adm
 import { Route as ApiOnboardingSkipRouteImport } from './routes/api/onboarding.skip'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
+const ServicesRoute = ServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/services': typeof ServicesRoute
   '/api/provision': typeof ApiProvisionRoute
   '/api/referral': typeof ApiReferralRoute
   '/dashboard/admin': typeof DashboardAdminRouteWithChildren
@@ -161,6 +168,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/services': typeof ServicesRoute
   '/api/provision': typeof ApiProvisionRoute
   '/api/referral': typeof ApiReferralRoute
   '/dashboard/admin': typeof DashboardAdminRouteWithChildren
@@ -184,6 +192,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/services': typeof ServicesRoute
   '/api/provision': typeof ApiProvisionRoute
   '/api/referral': typeof ApiReferralRoute
   '/dashboard/admin': typeof DashboardAdminRouteWithChildren
@@ -208,6 +217,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/register'
     | '/reset-password'
+    | '/services'
     | '/api/provision'
     | '/api/referral'
     | '/dashboard/admin'
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/register'
     | '/reset-password'
+    | '/services'
     | '/api/provision'
     | '/api/referral'
     | '/dashboard/admin'
@@ -251,6 +262,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/register'
     | '/reset-password'
+    | '/services'
     | '/api/provision'
     | '/api/referral'
     | '/dashboard/admin'
@@ -274,6 +286,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ServicesRoute: typeof ServicesRoute
   ApiProvisionRoute: typeof ApiProvisionRoute
   ApiReferralRoute: typeof ApiReferralRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -282,6 +295,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -480,6 +500,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ServicesRoute: ServicesRoute,
   ApiProvisionRoute: ApiProvisionRoute,
   ApiReferralRoute: ApiReferralRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
