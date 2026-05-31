@@ -147,12 +147,13 @@ def _random_suffix(n: int = 6) -> str:
     )
 
 
-async def create_litellm_key(student_id: str, agent_name: str) -> str:
+async def create_litellm_key(student_id: str, agent_name: str, key_name: str) -> str:
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             f"{LITELLM_ADMIN_BASE}/key/generate",
             headers={"Authorization": f"Bearer {LITELLM_ADMIN_KEY}"},
             json={
+                "key_name": key_name,
                 "models": ["Mythos"],
                 "metadata": {"student_id": student_id, "agent_name": agent_name},
             },
@@ -330,7 +331,7 @@ async def do_provision_phase1(req: ProvisionRequest) -> dict:
 
     # 2. Generate LiteLLM key restricted to Mythos
     try:
-        litellm_key = await create_litellm_key(req.telegram_user_id, req.agent_name)
+        litellm_key = await create_litellm_key(req.telegram_user_id, req.agent_name, req.telegram_username)
     except Exception:
         logger.exception("LiteLLM key generation failed")
         raise RuntimeError("Could not generate LiteLLM API key")
