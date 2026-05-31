@@ -78,85 +78,25 @@ export const Route = createFileRoute('/api/provision')({
             )
           }
 
-          if (!PROVISIONER_SECRET) {
-            return new Response(
-              JSON.stringify({ message: 'Provisioner secret not configured' }),
-              { status: 500, headers: { 'Content-Type': 'application/json' } }
-            )
-          }
-
-          // Fetch user details for telegram_username fallback
-          const user = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { name: true, email: true },
-          })
-          const telegramUsername = user?.name || user?.email || 'user'
-
-          // ── Phase 1: Bot + LiteLLM key ──────────────────────────────
-          const phase1Res = await fetch(`${WORKER_URL}/provision`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-secret': PROVISIONER_SECRET,
-            },
-            body: JSON.stringify({
-              telegram_user_id: userId,
-              telegram_username: telegramUsername,
-              agent_name: agentName.trim(),
-              student_name: studentName.trim(),
-              bio,
-            }),
-          })
-
-          if (!phase1Res.ok) {
-            const errText = await phase1Res.text().catch(() => 'Worker phase 1 failed')
-            return new Response(
-              JSON.stringify({ message: errText }),
-              { status: phase1Res.status, headers: { 'Content-Type': 'application/json' } }
-            )
-          }
-
-          const phase1Data = await phase1Res.json()
-
-          // ── Phase 2: Docker container ───────────────────────────────
-          const phase2Res = await fetch(`${WORKER_URL}/provision/phase2`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-secret': PROVISIONER_SECRET,
-            },
-            body: JSON.stringify({
-              telegram_user_id: userId,
-            }),
-          })
-
-          let containerRunning = false
-          if (!phase2Res.ok) {
-            // Phase 1 succeeded but Phase 2 failed — still persist the agent
-            // so the user sees it and we can retry later
-            console.warn('Worker phase 2 failed:', await phase2Res.text().catch(() => 'unknown error'))
-          } else {
-            containerRunning = true
-          }
-
-          // ── Persist in Prisma ──────────────────────────────────────
+          // Create agent with PENDING_APPROVAL status — admin must approve before provisioning
           const agent = await prisma.agent.create({
             data: {
               userId,
               name: agentName.trim(),
               studentName: studentName.trim(),
               bio,
-              containerName: phase1Data.container_name || `student-pa-${agentName.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString(36)}`,
-              botUsername: phase1Data.bot_username || null,
-              botToken: phase1Data.bot_token || null,
-              litellmKey: phase1Data.litellm_key || null,
-              status: containerRunning ? 'RUNNING' : 'ERROR',
-              containerRunning,
+              containerName: `student-pa-${agentName.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString(36)}`,
+              status: 'PENDING_APPROVAL',
+              containerRunning: false,
             },
           })
 
           return new Response(
-            JSON.stringify({ success: true, agent: { id: agent.id, name: agent.name, status: agent.status, containerRunning: agent.containerRunning } }),
+            JSON.stringify({ 
+              success: true, 
+              pendingApproval: true,
+              agent: { id: agent.id, name: agent.name, status: agent.status } 
+            }),
             { status: 200, headers: { 'Content-Type': 'application/json' } }
           )
         } catch (error: any) {

@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react'
 import { authClient } from '#/lib/auth-client'
 import { Loader2, ChevronDown } from 'lucide-react'
 import { ModeToggle } from '#/components/mode-toggle'
+import { isAdmin } from '#/lib/roles'
 
 export const Route = createFileRoute('/dashboard')({
   component: DashboardLayout,
@@ -34,7 +35,7 @@ function DashboardLayout() {
 
   if (isPending || !session?.user) {
     return (
-      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
       </div>
     )
@@ -44,7 +45,7 @@ function DashboardLayout() {
     { label: 'Dashboard', to: '/dashboard' as const },
     { label: 'Services', to: '/dashboard/services' as const },
     { label: 'Settings', to: '/dashboard/settings' as const },
-    ...((session.user as any).role === 'admin' ? [{ label: 'Admin', to: '/dashboard/admin' as const }] : []),
+    ...(isAdmin((session.user as any).role) ? [{ label: 'Admin', to: '/dashboard/admin' as const }] : []),
   ]
 
   const initials = session.user.name
@@ -57,11 +58,11 @@ function DashboardLayout() {
     : 'U'
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-black">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Top Nav */}
-      <header className="h-12 bg-black flex items-center justify-between px-4 md:px-6 shrink-0">
+      <header className="h-12 bg-background flex items-center justify-between px-4 md:px-6 shrink-0 border-b border-border">
         <div className="flex items-center">
-          <Link to="/dashboard" className="!text-white font-bold text-sm tracking-[0.4px] hover:!text-white/80">
+          <Link to="/dashboard" className="brand-logo hover:opacity-90 transition-opacity">
             AgentHub
           </Link>
         </div>
@@ -73,8 +74,8 @@ function DashboardLayout() {
               key={link.to}
               to={link.to}
               activeOptions={{ exact: link.to === '/dashboard' }}
-              className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white"
-              activeProps={{ className: '!text-white' }}
+              className="px-3 py-1.5 text-sm font-medium transition-colors text-foreground/70 hover:text-foreground"
+              activeProps={{ className: 'text-foreground font-semibold' }}
             >
               {link.label}
             </Link>
@@ -97,11 +98,11 @@ function DashboardLayout() {
                   className="h-8 w-8 rounded-full object-cover"
                 />
               ) : (
-                <div className="h-8 w-8 rounded-full bg-white/10 text-white flex items-center justify-center text-xs font-semibold">
+                <div className="h-8 w-8 rounded-full bg-foreground/10 text-foreground flex items-center justify-center text-xs font-semibold">
                   {initials}
                 </div>
               )}
-              <ChevronDown className="h-4 w-4 text-white/70" />
+              <ChevronDown className="h-4 w-4 text-foreground/70" />
             </button>
 
             {dropdownOpen && (

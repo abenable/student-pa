@@ -9,9 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
@@ -30,7 +33,18 @@ import { Route as DashboardAdminUsersRouteImport } from './routes/dashboard/admi
 import { Route as DashboardAdminAgentsRouteImport } from './routes/dashboard/admin.agents'
 import { Route as ApiOnboardingSkipRouteImport } from './routes/api/onboarding.skip'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiAdminApprovalsRouteImport } from './routes/api/admin/approvals'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
@@ -44,6 +58,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -137,6 +156,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminApprovalsRoute = ApiAdminApprovalsRouteImport.update({
+  id: '/api/admin/approvals',
+  path: '/api/admin/approvals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -144,9 +168,12 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/api/provision': typeof ApiProvisionRoute
   '/api/referral': typeof ApiReferralRoute
   '/dashboard/admin': typeof DashboardAdminRouteWithChildren
@@ -155,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/services': typeof DashboardServicesRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/admin/approvals': typeof ApiAdminApprovalsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/onboarding/skip': typeof ApiOnboardingSkipRoute
   '/dashboard/admin/agents': typeof DashboardAdminAgentsRoute
@@ -166,9 +194,12 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/api/provision': typeof ApiProvisionRoute
   '/api/referral': typeof ApiReferralRoute
   '/dashboard/admin': typeof DashboardAdminRouteWithChildren
@@ -177,6 +208,7 @@ export interface FileRoutesByTo {
   '/dashboard/services': typeof DashboardServicesRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/api/admin/approvals': typeof ApiAdminApprovalsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/onboarding/skip': typeof ApiOnboardingSkipRoute
   '/dashboard/admin/agents': typeof DashboardAdminAgentsRoute
@@ -190,9 +222,12 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/api/provision': typeof ApiProvisionRoute
   '/api/referral': typeof ApiReferralRoute
   '/dashboard/admin': typeof DashboardAdminRouteWithChildren
@@ -201,6 +236,7 @@ export interface FileRoutesById {
   '/dashboard/services': typeof DashboardServicesRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/admin/approvals': typeof ApiAdminApprovalsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/onboarding/skip': typeof ApiOnboardingSkipRoute
   '/dashboard/admin/agents': typeof DashboardAdminAgentsRoute
@@ -215,9 +251,12 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/pricing'
+    | '/privacy'
     | '/register'
     | '/reset-password'
     | '/services'
+    | '/support'
+    | '/terms'
     | '/api/provision'
     | '/api/referral'
     | '/dashboard/admin'
@@ -226,6 +265,7 @@ export interface FileRouteTypes {
     | '/dashboard/services'
     | '/dashboard/settings'
     | '/dashboard/'
+    | '/api/admin/approvals'
     | '/api/auth/$'
     | '/api/onboarding/skip'
     | '/dashboard/admin/agents'
@@ -237,9 +277,12 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/pricing'
+    | '/privacy'
     | '/register'
     | '/reset-password'
     | '/services'
+    | '/support'
+    | '/terms'
     | '/api/provision'
     | '/api/referral'
     | '/dashboard/admin'
@@ -248,6 +291,7 @@ export interface FileRouteTypes {
     | '/dashboard/services'
     | '/dashboard/settings'
     | '/dashboard'
+    | '/api/admin/approvals'
     | '/api/auth/$'
     | '/api/onboarding/skip'
     | '/dashboard/admin/agents'
@@ -260,9 +304,12 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/pricing'
+    | '/privacy'
     | '/register'
     | '/reset-password'
     | '/services'
+    | '/support'
+    | '/terms'
     | '/api/provision'
     | '/api/referral'
     | '/dashboard/admin'
@@ -271,6 +318,7 @@ export interface FileRouteTypes {
     | '/dashboard/services'
     | '/dashboard/settings'
     | '/dashboard/'
+    | '/api/admin/approvals'
     | '/api/auth/$'
     | '/api/onboarding/skip'
     | '/dashboard/admin/agents'
@@ -284,17 +332,35 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ServicesRoute: typeof ServicesRoute
+  SupportRoute: typeof SupportRoute
+  TermsRoute: typeof TermsRoute
   ApiProvisionRoute: typeof ApiProvisionRoute
   ApiReferralRoute: typeof ApiReferralRoute
+  ApiAdminApprovalsRoute: typeof ApiAdminApprovalsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiOnboardingSkipRoute: typeof ApiOnboardingSkipRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/services': {
       id: '/services'
       path: '/services'
@@ -314,6 +380,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -442,6 +515,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/approvals': {
+      id: '/api/admin/approvals'
+      path: '/api/admin/approvals'
+      fullPath: '/api/admin/approvals'
+      preLoaderRoute: typeof ApiAdminApprovalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -498,11 +578,15 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ServicesRoute: ServicesRoute,
+  SupportRoute: SupportRoute,
+  TermsRoute: TermsRoute,
   ApiProvisionRoute: ApiProvisionRoute,
   ApiReferralRoute: ApiReferralRoute,
+  ApiAdminApprovalsRoute: ApiAdminApprovalsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiOnboardingSkipRoute: ApiOnboardingSkipRoute,
 }

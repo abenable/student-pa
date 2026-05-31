@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { authClient } from '#/lib/auth-client'
 import { ShieldAlert } from 'lucide-react'
+import { isAdmin } from '#/lib/roles'
 
 export const Route = createFileRoute('/dashboard/admin/users')({
   component: UsersDirectory,
@@ -9,14 +10,14 @@ export const Route = createFileRoute('/dashboard/admin/users')({
 function UsersDirectory() {
   const { data: session } = authClient.useSession()
 
-  const isAdmin = session?.user?.role === 'admin'
+  const isAdminUser = isAdmin(session?.user?.role)
 
-  if (!isAdmin) {
+  if (!isAdminUser) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#121314] flex flex-col items-center justify-center text-center px-6">
-        <ShieldAlert className="h-12 w-12 mb-4" color="#c81b3a" />
-        <h1 className="text-2xl font-semibold text-black dark:text-white mb-2">Access Denied</h1>
-        <p className="text-base text-black/60 dark:text-white/60 mb-6">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center text-center px-6">
+        <ShieldAlert className="h-12 w-12 mb-4 text-red-500" />
+        <h1 className="text-2xl font-semibold text-foreground mb-2">Access Denied</h1>
+        <p className="text-base text-foreground/60 mb-6">
           You don't have permission to view this page.
         </p>
         <Link
@@ -37,7 +38,7 @@ function UsersDirectory() {
       >
         ← Admin Dashboard
       </Link>
-      <h1 className="text-[44px] font-light leading-[1.25] tracking-[0.1px] font-['Roboto'] text-black dark:text-white">
+      <h1 className="text-[44px] font-light leading-[1.25] tracking-[0.1px] font-['Roboto'] text-foreground">
         Users
       </h1>
 
@@ -45,19 +46,19 @@ function UsersDirectory() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-black/10 dark:border-white/10">
-                <th className="px-6 py-3 font-medium text-black/60 dark:text-white/60">Name</th>
-                <th className="px-6 py-3 font-medium text-black/60 dark:text-white/60">Email</th>
-                <th className="px-6 py-3 font-medium text-black/60 dark:text-white/60">Role</th>
-                <th className="px-6 py-3 font-medium text-black/60 dark:text-white/60">Agent</th>
-                <th className="px-6 py-3 font-medium text-black/60 dark:text-white/60">Created</th>
+              <tr className="border-b border-border">
+                <th className="px-6 py-3 font-medium text-foreground/60">Name</th>
+                <th className="px-6 py-3 font-medium text-foreground/60">Email</th>
+                <th className="px-6 py-3 font-medium text-foreground/60">Role</th>
+                <th className="px-6 py-3 font-medium text-foreground/60">Agent</th>
+                <th className="px-6 py-3 font-medium text-foreground/60">Created</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td
                   colSpan={5}
-                  className="px-6 py-12 text-center text-black/60 dark:text-white/60"
+                  className="px-6 py-12 text-center text-foreground/60"
                 >
                   No users to display
                 </td>

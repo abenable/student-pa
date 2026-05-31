@@ -125,33 +125,33 @@ function SettingsPage() {
         </div>
 
         {activeTab === 'agent' && (
-          <div className="space-y-12">
+          <div className="space-y-16">
             {/* Agent Information */}
             <section>
-              <h2 className="text-xl font-bold text-black dark:text-white mb-4">
+              <h2 className="text-xl font-bold text-foreground mb-4">
                 Agent Information
               </h2>
               <div className="space-y-4" style={{ maxWidth: '512px' }}>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5 text-black dark:text-white">
+                  <label className="block text-sm font-medium mb-1.5 text-foreground">
                     Agent name
                   </label>
                   <input
                     type="text"
                     value={agentName}
                     onChange={(e) => setAgentName(e.target.value)}
-                    className="w-full h-12 border border-[#cccccc] rounded-sm px-4 text-base focus:outline-none focus:border-[#0070d1] bg-white dark:bg-[#121314] text-black dark:text-white placeholder:text-black/30 dark:placeholder:text-white/30"
+                    className="w-full h-12 border border-border rounded-sm px-4 text-base focus:outline-none focus:border-[#0070d1] bg-background text-foreground placeholder:text-foreground/30"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5 text-black dark:text-white">
+                  <label className="block text-sm font-medium mb-1.5 text-foreground">
                     Bio
                   </label>
                   <textarea
                     value={agentBio}
                     onChange={(e) => setAgentBio(e.target.value)}
                     rows={3}
-                    className="w-full border border-[#cccccc] rounded-sm px-4 py-3 text-base focus:outline-none focus:border-[#0070d1] bg-white dark:bg-[#121314] text-black dark:text-white placeholder:text-black/30 dark:placeholder:text-white/30 resize-none"
+                    className="w-full border border-border rounded-sm px-4 py-3 text-base focus:outline-none focus:border-[#0070d1] bg-background text-foreground placeholder:text-foreground/30 resize-none"
                     placeholder="Describe your agent's role..."
                   />
                 </div>
@@ -166,34 +166,52 @@ function SettingsPage() {
 
             {/* Connection Status */}
             <section>
-              <h2 className="text-xl font-bold text-black dark:text-white mb-4">
+              <h2 className="text-xl font-bold text-foreground mb-4">
                 Connection Status
               </h2>
               <div className="space-y-3" style={{ maxWidth: '512px' }}>
-                <div className="flex items-center justify-between py-3 border-b border-[#f3f3f3] dark:border-white/10">
-                  <span className="text-sm text-black/70 dark:text-white/70">Telegram Bot</span>
-                  <span className="text-sm font-medium text-black dark:text-white">
-                    Not connected
-                  </span>
+                <div className="flex items-center justify-between py-3 border-b border-border">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-50" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                    </span>
+                    <span className="text-sm text-foreground/70">Telegram Bot</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-foreground/50">Not connected</span>
+                    <button className="text-xs font-bold text-[#0070d1] hover:underline">Connect</button>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between py-3 border-b border-[#f3f3f3] dark:border-white/10">
-                  <span className="text-sm text-black/70 dark:text-white/70">GWS Auth</span>
-                  <span className="text-sm font-medium text-black dark:text-white">
-                    Not authenticated
-                  </span>
+                <div className="flex items-center justify-between py-3 border-b border-border">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-50" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                    </span>
+                    <span className="text-sm text-foreground/70">GWS Auth</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-foreground/50">Not authenticated</span>
+                    <button className="text-xs font-bold text-[#0070d1] hover:underline">Authenticate</button>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between py-3 border-b border-[#f3f3f3] dark:border-white/10">
-                  <span className="text-sm text-black/70 dark:text-white/70">LiteLLM Key</span>
-                  <span className="text-sm font-medium text-black dark:text-white font-mono">
-                    sk-••••••••
-                  </span>
+                <div className="flex items-center justify-between py-3 border-b border-border">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-50" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                    </span>
+                    <span className="text-sm text-foreground/70">LiteLLM Key</span>
+                  </div>
+                  <span className="text-sm text-foreground font-mono">sk-••••••••</span>
                 </div>
               </div>
             </section>
 
             {/* Container Controls */}
             <section>
-              <h2 className="text-xl font-bold text-black dark:text-white mb-4">
+              <h2 className="text-xl font-bold text-foreground mb-4">
                 Container Controls
               </h2>
               <div className="flex items-center gap-3">
@@ -205,29 +223,32 @@ function SettingsPage() {
                 </button>
                 <button
                   type="button"
-                  className="border border-black/20 dark:border-white/20 text-black dark:text-white rounded-full px-7 py-3 h-12 font-bold inline-flex items-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                  className="border border-foreground/20 text-foreground rounded-full px-7 py-3 h-12 font-bold inline-flex items-center hover:bg-foreground/5 transition-colors"
                 >
                   Stop
                 </button>
               </div>
             </section>
 
-            {/* Danger Zone */}
-            <section className="mt-12 border-t border-[#f3f3f3] dark:border-white/10 pt-8">
-              <h2 className="text-xl font-bold text-[#c81b3a] mb-4">
-                Danger Zone
-              </h2>
-              <p className="text-sm text-black/60 dark:text-white/60 mb-4">
-                Once you delete your agent, there is no going back. Please be
-                certain.
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowDeleteModal(true)}
-                className="bg-[#d53b00] text-white rounded-full px-7 py-3 h-12 font-bold inline-flex items-center hover:bg-[#b83200] transition-colors"
-              >
-                Delete Agent
-              </button>
+            {/* Danger Zone — separated with whitespace and warning tint */}
+            <section className="mt-16">
+              <div className="h-px bg-border mb-16" />
+              <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-lg p-6">
+                <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">
+                  Danger Zone
+                </h2>
+                <p className="text-sm text-foreground/60 mb-4">
+                  Once you delete your agent, there is no going back. Please be
+                  certain.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteModal(true)}
+                  className="bg-red-600 text-white rounded-full px-7 py-3 h-12 font-bold inline-flex items-center hover:bg-red-700 transition-colors"
+                >
+                  Delete Agent
+                </button>
+              </div>
             </section>
           </div>
         )}

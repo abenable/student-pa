@@ -12,13 +12,14 @@ import {
 import { Button } from '#/components/ui/button'
 import { ModeToggle } from '#/components/mode-toggle'
 import { authClient } from '#/lib/auth-client'
+import { isAdmin } from '#/lib/roles'
 
 export const Route = createFileRoute('/')({ component: Home })
 
 function Home() {
   const { data: session } = authClient.useSession()
   const isAuth = !!session?.user
-  const isAdmin = (session?.user as any)?.role === 'admin'
+  const isAdminUser = isAdmin((session?.user as any)?.role)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -49,7 +50,7 @@ function Home() {
         { label: 'Services', to: '/dashboard/services' as const },
         { label: 'Pricing', to: '/pricing' as const },
         { label: 'Settings', to: '/dashboard/settings' as const },
-        ...(isAdmin ? [{ label: 'Admin', to: '/dashboard/admin' as const }] : []),
+        ...(isAdminUser ? [{ label: 'Admin', to: '/dashboard/admin' as const }] : []),
       ]
       : [
         { label: 'Features', href: '#features' },
@@ -94,10 +95,10 @@ function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans antialiased overflow-x-hidden">
       {/* Section 1: Primary Nav */}
-      <nav className="sticky top-0 z-50 h-12 bg-black/90 backdrop-blur-md flex items-center justify-between px-4 md:px-6 border-b border-white/5">
+      <nav className="sticky top-0 z-50 h-12 bg-background/90 backdrop-blur-md flex items-center justify-between px-4 md:px-6 border-b border-border/5">
         <Link
           to="/"
-          className="!text-white font-bold text-sm tracking-[0.4px] hover:!text-white/80 transition-colors"
+          className="brand-logo hover:opacity-90 transition-opacity"
         >
           AgentHub
         </Link>
@@ -108,7 +109,7 @@ function Home() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group"
+                  className="px-3 py-1.5 text-sm font-medium transition-colors text-foreground/70 hover:text-foreground relative group"
                 >
                   {link.label}
                   <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
@@ -119,7 +120,7 @@ function Home() {
                   <Link
                     key={link.to}
                     to={link.to}
-                    className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group"
+                    className="px-3 py-1.5 text-sm font-medium transition-colors text-foreground/70 hover:text-foreground relative group"
                   >
                     {link.label}
                     <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
@@ -128,7 +129,7 @@ function Home() {
                   <a
                     key={link.href}
                     href={link.href}
-                    className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group"
+                    className="px-3 py-1.5 text-sm font-medium transition-colors text-foreground/70 hover:text-foreground relative group"
                   >
                     {link.label}
                     <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
@@ -146,10 +147,10 @@ function Home() {
                 className="flex items-center gap-1.5 outline-none group"
                 aria-label="User menu"
               >
-                <div className="h-8 w-8 rounded-full bg-white/10 text-white flex items-center justify-center text-xs font-semibold transition-transform group-hover:scale-105">
+                <div className="h-8 w-8 rounded-full bg-foreground/10 text-foreground flex items-center justify-center text-xs font-semibold transition-transform group-hover:scale-105">
                   {initials}
                 </div>
-                <ChevronDown className="h-4 w-4 text-white/70 transition-transform duration-200" style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                <ChevronDown className="h-4 w-4 text-foreground/70 transition-transform duration-200" style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
               </button>
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#181818] rounded-lg shadow-lg border border-black/10 dark:border-white/10 py-2 z-50 animate-scale-in">

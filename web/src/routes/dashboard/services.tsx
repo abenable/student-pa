@@ -12,6 +12,7 @@ const services = [
     description:
       'Triage unread emails, draft replies, and sync deadlines to your calendar.',
     icon: Mail,
+    cta: 'Triage Inbox',
   },
   {
     id: 'lab-report',
@@ -19,6 +20,7 @@ const services = [
     description:
       'Generate beautifully formatted LaTeX lab reports with auto-compiled PDFs.',
     icon: FileText,
+    cta: 'Generate Report',
   },
   {
     id: 'job-application',
@@ -26,6 +28,7 @@ const services = [
     description:
       'Draft tailored cover letters, optimize your resume, and track applications.',
     icon: Briefcase,
+    cta: 'Draft Application',
   },
   {
     id: 'paper-interrogator',
@@ -33,6 +36,7 @@ const services = [
     description:
       'Upload PDFs, extract methodologies, summarize findings, and generate outlines.',
     icon: BookOpen,
+    cta: 'Analyze Paper',
   },
   {
     id: 'lecture-summarizer',
@@ -40,6 +44,7 @@ const services = [
     description:
       'Convert lectures into searchable transcripts and chapterized summaries.',
     icon: Video,
+    cta: 'Summarize Lecture',
   },
 ]
 

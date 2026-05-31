@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { authClient } from '#/lib/auth-client'
+import { isAdmin } from '#/lib/roles'
 import { ModeToggle } from '#/components/mode-toggle'
 import { Button } from '#/components/ui/button'
 
@@ -55,7 +56,7 @@ function RegisterPage() {
     }
 
     const user = result.data?.user as any
-    if (user?.role === 'admin') {
+    if (isAdmin(user?.role)) {
       navigate({ to: '/dashboard' })
     } else {
       navigate({ to: '/dashboard/onboarding' })

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { authClient } from '#/lib/auth-client'
 import { Button } from '#/components/ui/button'
 import { CheckCircle, Loader2 } from 'lucide-react'
+import { isAdmin } from '#/lib/roles'
 
 const BIO_OPTIONS = [
   { emoji: '🎓', label: '1st year - general help', value: '1st year student looking for general academic help' },
@@ -35,8 +36,8 @@ function OnboardingPage() {
     async function checkExistingAgent() {
       try {
         const user = session?.user as any
-        // Admins skip onboarding entirely
-        if (user?.role === 'admin') {
+        // Admins and enterprise managers skip onboarding entirely
+        if (isAdmin(user?.role)) {
           navigate({ to: '/dashboard', replace: true })
           return
         }
@@ -85,9 +86,6 @@ function OnboardingPage() {
       }
 
       setStep(5)
-      setTimeout(() => {
-        navigate({ to: '/dashboard' })
-      }, 2000)
     } catch (e: any) {
       setError(e.message || 'Something went wrong')
       setIsSubmitting(false)
@@ -253,23 +251,29 @@ function OnboardingPage() {
             <div className="text-center py-8">
               <Loader2 className="mx-auto h-12 w-12 text-[#0070d1] animate-spin mb-6" />
               <h2 className="text-[24px] font-light leading-[1.25] font-['Roboto']">
-                Creating your agent...
+                Submitting for approval...
               </h2>
               <p className="text-foreground/60 mt-2">
-                This takes about 30 seconds.
+                Your agent request is being sent for admin approval.
               </p>
             </div>
           )}
 
           {step === 5 && (
             <div className="text-center py-8">
-              <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-6" />
+              <CheckCircle className="mx-auto h-12 w-12 text-amber-500 mb-6" />
               <h2 className="text-[24px] font-light leading-[1.25] font-['Roboto']">
-                Your agent is ready!
+                Pending admin approval
               </h2>
-              <p className="text-foreground/60 mt-2">
-                Redirecting you to the dashboard...
+              <p className="text-foreground/60 mt-2 max-w-sm mx-auto">
+                Your agent <strong>{agentName}</strong> has been submitted. An admin will review and approve your request shortly. You'll receive access once approved.
               </p>
+              <Button
+                onClick={() => navigate({ to: '/dashboard' })}
+                className="mt-6 bg-[#0070d1] text-white rounded-full px-7 h-12 font-bold hover:bg-[#0064b7]"
+              >
+                Go to Dashboard
+              </Button>
             </div>
           )}
         </div>

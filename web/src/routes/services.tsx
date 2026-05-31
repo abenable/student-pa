@@ -4,6 +4,7 @@ import { Bot, Wrench, Server, Key, Sparkles, ChevronDown } from 'lucide-react'
 import { Button } from '#/components/ui/button'
 import { ModeToggle } from '#/components/mode-toggle'
 import { authClient } from '#/lib/auth-client'
+import { isAdmin } from '#/lib/roles'
 
 export const Route = createFileRoute('/services')({
   component: ServicesPage,
@@ -67,7 +68,7 @@ const offerings = [
 function ServicesPage() {
   const { data: session } = authClient.useSession()
   const isAuth = !!session?.user
-  const isAdmin = (session?.user as any)?.role === 'admin'
+  const isAdminUser = isAdmin((session?.user as any)?.role)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -95,32 +96,32 @@ function ServicesPage() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans antialiased overflow-x-hidden">
       {/* Nav */}
-      <nav className="sticky top-0 z-50 h-12 bg-black/90 backdrop-blur-md flex items-center justify-between px-4 md:px-6 border-b border-white/5">
-        <Link to="/" className="!text-white font-bold text-sm tracking-[0.4px] hover:!text-white/80 transition-colors">
+      <nav className="sticky top-0 z-50 h-12 bg-background/90 backdrop-blur-md flex items-center justify-between px-4 md:px-6 border-b border-border/5">
+        <Link to="/" className="brand-logo font-bold text-sm tracking-[0.4px] hover:opacity-80 transition-opacity">
           AgentHub
         </Link>
 
         <div className="hidden md:flex items-center gap-1">
           {isAuth ? (
             <>
-              <Link to="/dashboard" className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group">
+              <Link to="/dashboard" className="px-3 py-1.5 text-sm font-medium transition-colors text-foreground/70 hover:text-foreground relative group">
                 Dashboard
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
               </Link>
-              <Link to="/services" className="px-3 py-1.5 text-sm font-medium transition-colors !text-white relative group">
+              <Link to="/services" className="px-3 py-1.5 text-sm font-medium transition-colors text-foreground relative group">
                 Services
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4/5 h-0.5 bg-[#0070d1] rounded-full" />
               </Link>
-              <Link to="/pricing" className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group">
+              <Link to="/pricing" className="px-3 py-1.5 text-sm font-medium transition-colors text-foreground/70 hover:text-foreground relative group">
                 Pricing
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
               </Link>
-              <Link to="/dashboard/settings" className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group">
+              <Link to="/dashboard/settings" className="px-3 py-1.5 text-sm font-medium transition-colors text-foreground/70 hover:text-foreground relative group">
                 Settings
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
               </Link>
-              {isAdmin && (
-                <Link to="/dashboard/admin" className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group">
+              {isAdminUser && (
+                <Link to="/dashboard/admin" className="px-3 py-1.5 text-sm font-medium transition-colors text-foreground/70 hover:text-foreground relative group">
                   Admin
                   <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
                 </Link>
@@ -128,19 +129,19 @@ function ServicesPage() {
             </>
           ) : (
             <>
-              <Link to="/" className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group">
+              <Link to="/" className="px-3 py-1.5 text-sm font-medium transition-colors text-foreground/70 hover:text-foreground relative group">
                 Home
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
               </Link>
-              <Link to="/services" className="px-3 py-1.5 text-sm font-medium transition-colors !text-white relative group">
+              <Link to="/services" className="px-3 py-1.5 text-sm font-medium transition-colors text-foreground relative group">
                 Services
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4/5 h-0.5 bg-[#0070d1] rounded-full" />
               </Link>
-              <Link to="/pricing" className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group">
+              <Link to="/pricing" className="px-3 py-1.5 text-sm font-medium transition-colors text-foreground/70 hover:text-foreground relative group">
                 Pricing
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
               </Link>
-              <Link to="/login" className="px-3 py-1.5 text-sm font-medium transition-colors !text-white/70 hover:!text-white relative group">
+              <Link to="/login" className="px-3 py-1.5 text-sm font-medium transition-colors text-foreground/70 hover:text-foreground relative group">
                 Sign In
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#0070d1] transition-all duration-300 group-hover:w-4/5 rounded-full" />
               </Link>
@@ -153,10 +154,10 @@ function ServicesPage() {
           {isAuth ? (
             <div className="relative" ref={dropdownRef}>
               <button onClick={() => setDropdownOpen((prev) => !prev)} className="flex items-center gap-1.5 outline-none group" aria-label="User menu">
-                <div className="h-8 w-8 rounded-full bg-white/10 text-white flex items-center justify-center text-xs font-semibold transition-transform group-hover:scale-105">
+                <div className="h-8 w-8 rounded-full bg-foreground/10 text-foreground flex items-center justify-center text-xs font-semibold transition-transform group-hover:scale-105">
                   {initials}
                 </div>
-                <ChevronDown className="h-4 w-4 text-white/70 transition-transform duration-200" style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                <ChevronDown className="h-4 w-4 text-foreground/70 transition-transform duration-200" style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
               </button>
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#181818] rounded-lg shadow-lg border border-black/10 dark:border-white/10 py-2 z-50 animate-scale-in">
@@ -272,9 +273,9 @@ function ServicesPage() {
               &copy; 2026 AgentHub. Student intelligence, redefined.
             </span>
             <div className="flex items-center gap-5">
-              <Link to="/" className="text-muted-foreground hover:text-foreground text-xs transition-colors">Privacy</Link>
-              <Link to="/" className="text-muted-foreground hover:text-foreground text-xs transition-colors">Terms</Link>
-              <Link to="/" className="text-muted-foreground hover:text-foreground text-xs transition-colors">Support</Link>
+              <Link to="/privacy" className="text-muted-foreground hover:text-foreground text-xs transition-colors">Privacy</Link>
+              <Link to="/terms" className="text-muted-foreground hover:text-foreground text-xs transition-colors">Terms</Link>
+              <Link to="/support" className="text-muted-foreground hover:text-foreground text-xs transition-colors">Support</Link>
             </div>
           </div>
         </div>

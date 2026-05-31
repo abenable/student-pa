@@ -89,7 +89,9 @@ model Agent {
   botUsername       String?
   botToken          String?
   litellmKey        String?
-  status            AgentStatus @default(PROVISIONING)
+  status            AgentStatus @default(PENDING_APPROVAL)
+  approvedAt        DateTime?
+  approvedBy        String?
   containerRunning  Boolean     @default(false)
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
@@ -125,6 +127,7 @@ model ChatMessage {
 }
 
 enum AgentStatus {
+  PENDING_APPROVAL
   PROVISIONING
   RUNNING
   STOPPED

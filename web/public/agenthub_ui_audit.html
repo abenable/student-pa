@@ -1,0 +1,190 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  .section { margin-bottom: 2rem; }
+  .section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem; padding-bottom: 6px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px 16px; position: relative; }
+  .card-label { font-size: 11px; font-weight: 500; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .card-body { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
+  .pill { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; margin-bottom: 8px; }
+  .pill-red { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .pill-amber { background: var(--color-background-warning); color: var(--color-text-warning); }
+  .pill-blue { background: var(--color-background-info); color: var(--color-text-info); }
+  .pill-green { background: var(--color-background-success); color: var(--color-text-success); }
+  .fix { margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--color-border-tertiary); font-size: 12px; color: var(--color-text-secondary); }
+  .fix strong { color: var(--color-text-primary); font-weight: 500; }
+  .page-tag { font-size: 10px; color: var(--color-text-tertiary); font-weight: 500; letter-spacing: 0.04em; position: absolute; top: 12px; right: 14px; }
+  .aesthetic-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .before { border-left: 3px solid var(--color-border-secondary); }
+  .after { border-left: 3px solid var(--color-text-success); }
+  .color-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .swatch { width: 28px; height: 28px; border-radius: 6px; display: inline-block; }
+  .big-label { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+  .divider { height: 0.5px; background: var(--color-border-tertiary); margin: 2rem 0; }
+  .icon-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  i { font-size: 16px; }
+</style>
+
+<div class="section">
+  <div class="section-title">Critical issues — fix these first</div>
+  <div class="grid">
+
+    <div class="card">
+      <span class="page-tag">DASHBOARD</span>
+      <span class="pill pill-red">High priority</span>
+      <div class="big-label">Empty dashboard has no direction</div>
+      <div class="card-body">Zero stats with no guidance creates a "broken" feeling. Users don't know what to do and may churn on day one.</div>
+      <div class="fix"><strong>Fix:</strong> Add a checklist-style onboarding card: "Complete your setup" — connect Gmail, run your first service, invite a friend. Disappears once done. Show 0 values with a helpful nudge like "Run a service to see stats."</div>
+    </div>
+
+    <div class="card">
+      <span class="page-tag">SETTINGS</span>
+      <span class="pill pill-red">High priority</span>
+      <div class="big-label">Dead-end connection statuses</div>
+      <div class="card-body">"Not connected" and "Not authenticated" are shown with no action. Users are stuck — there's nowhere to click to fix this.</div>
+      <div class="fix"><strong>Fix:</strong> Each connection row needs a <strong>Connect</strong> or <strong>Authenticate</strong> button inline. Show a subtle status dot (green = connected, amber = partial, red = error). Add a short tooltip explaining what each connection unlocks.</div>
+    </div>
+
+    <div class="card">
+      <span class="page-tag">SETTINGS</span>
+      <span class="pill pill-red">High priority</span>
+      <div class="big-label">Danger Zone is too close to normal settings</div>
+      <div class="card-body">Delete Agent sits in the same visual flow as Save and Restart — a scroll-past risk with no buffer.</div>
+      <div class="fix"><strong>Fix:</strong> Add at least 60px of whitespace + a full-width divider before the Danger Zone. Optionally place it in its own card with a warning background tint. Add a confirmation dialog with typed confirmation (e.g. type agent name to delete).</div>
+    </div>
+
+    <div class="card">
+      <span class="page-tag">PRICING</span>
+      <span class="pill pill-amber">Medium priority</span>
+      <div class="big-label">"Current Plan" is shown on Enterprise</div>
+      <div class="card-body">If the user is not on Enterprise, showing "Current Plan" on that tier is misleading and potentially alarming.</div>
+      <div class="fix"><strong>Fix:</strong> Read the user's actual plan from their session and apply the "Current Plan" badge dynamically. Highlight the right card programmatically.</div>
+    </div>
+
+    <div class="card">
+      <span class="page-tag">SERVICES</span>
+      <span class="pill pill-amber">Medium priority</span>
+      <div class="big-label">"Run" button gives no feedback or preview</div>
+      <div class="card-body">All five services have identical "Run" CTAs. Users don't know if clicking opens a form, starts a job, or navigates away.</div>
+      <div class="fix"><strong>Fix:</strong> Change "Run" to an action-specific label: "Generate Report", "Triage Inbox", "Analyze Paper". On hover, show a tooltip or a mini-preview of what the service does. On click, show a loading state before navigation.</div>
+    </div>
+
+    <div class="card">
+      <span class="page-tag">REFERRAL</span>
+      <span class="pill pill-amber">Medium priority</span>
+      <div class="big-label">Referral code not shown by default</div>
+      <div class="card-body">The code input is empty on page load. This makes the feature feel broken and reduces sharing motivation.</div>
+      <div class="fix"><strong>Fix:</strong> Auto-generate and pre-fill the referral code on load. Show "0 friends referred / 0 free weeks earned" with real zeros (not blank tiles). Add a share button (WhatsApp, copy link) alongside the Copy button.</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="section">
+  <div class="section-title">Missing features & UX gaps</div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="icon-row"><i class="ti ti-bell" aria-hidden="true"></i><div class="big-label" style="font-size:13px">No notification system</div></div>
+      <div class="card-body">When an agent completes a job, there's no way for the user to know. No in-app notifications, no email confirmation shown, no history log.</div>
+      <div class="fix"><strong>Add:</strong> A notification bell in the nav. A "Job completed" toast on service finish. An activity log on the dashboard with timestamps and statuses.</div>
+    </div>
+
+    <div class="card">
+      <div class="icon-row"><i class="ti ti-user" aria-hidden="true"></i><div class="big-label" style="font-size:13px">No profile or account page</div></div>
+      <div class="card-body">Settings has an Agent tab and Referral tab but no Account tab visible in the live app (seen in settings nav: Agent, Account, Referral — Account is there but not shown).</div>
+      <div class="fix"><strong>Ensure:</strong> Account tab shows name, email, plan, billing date, and a logout button. This is critical trust infrastructure for a paid SaaS.</div>
+    </div>
+
+    <div class="card">
+      <div class="icon-row"><i class="ti ti-file-text" aria-hidden="true"></i><div class="big-label" style="font-size:13px">No output viewer</div></div>
+      <div class="card-body">Where do users see the results of a service run? There's no output page, results panel, or download flow visible in any screenshot.</div>
+      <div class="fix"><strong>Add:</strong> A results drawer or dedicated output page per service run. Show formatted output (LaTeX preview, email drafts, summaries). Allow download as PDF or copy.</div>
+    </div>
+
+    <div class="card">
+      <div class="icon-row"><i class="ti ti-help-circle" aria-hidden="true"></i><div class="big-label" style="font-size:13px">No help or docs link</div></div>
+      <div class="card-body">No FAQ, no onboarding tooltip, no "How it works" walkthrough anywhere inside the authenticated app.</div>
+      <div class="fix"><strong>Add:</strong> A small "?" icon in the nav linking to docs. A first-run walkthrough tooltip sequence. An inline help icon next to "LiteLLM Key" and other technical fields.</div>
+    </div>
+
+    <div class="card">
+      <div class="icon-row"><i class="ti ti-device-mobile" aria-hidden="true"></i><div class="big-label" style="font-size:13px">Mobile responsiveness unclear</div></div>
+      <div class="card-body">The landing page nav collapses poorly at smaller viewports based on the screenshot layout. Services grid may not wrap well on mobile.</div>
+      <div class="fix"><strong>Verify:</strong> Test all pages at 375px and 768px. The 3-column services grid should go 1-column on mobile. Nav needs a hamburger menu for small screens.</div>
+    </div>
+
+    <div class="card">
+      <div class="icon-row"><i class="ti ti-chart-bar" aria-hidden="true"></i><div class="big-label" style="font-size:13px">Agent uptime shows "—"</div></div>
+      <div class="card-body">A dash instead of "0h" looks like a loading error, not an intentional empty state. Erodes trust in the platform's reliability.</div>
+      <div class="fix"><strong>Fix:</strong> Show "0h" or "Just started" with a tooltip. Once uptime exists, show it as "3h 22m" not a raw number. Consider a small uptime sparkline over 7 days.</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="section">
+  <div class="section-title">Aesthetic improvements</div>
+  <div class="aesthetic-row">
+
+    <div class="card before">
+      <span class="pill pill-red">Current</span>
+      <div class="card-body" style="font-size:13px">
+        <strong style="color:var(--color-text-primary); font-weight:500">Typography:</strong> Multiple font weights used inconsistently across pages. Title sizes vary between the landing page and inner app.<br><br>
+        <strong style="color:var(--color-text-primary); font-weight:500">Color:</strong> The blue (#2563EB-ish) is used for all interactive elements but there is no secondary accent. Everything feels monotone.<br><br>
+        <strong style="color:var(--color-text-primary); font-weight:500">Spacing:</strong> Card padding is tight on the landing page feature grid. Inner app cards feel more generously padded — inconsistent rhythm.<br><br>
+        <strong style="color:var(--color-text-primary); font-weight:500">Hero image:</strong> Generic robot stock photo unrelated to the actual product.
+      </div>
+    </div>
+
+    <div class="card after">
+      <span class="pill pill-green">Recommended</span>
+      <div class="card-body" style="font-size:13px">
+        <strong style="color:var(--color-text-primary); font-weight:500">Typography:</strong> Lock in two weights only: 400 body, 600 headings. Use one type scale across all pages (e.g. 14/16/24/32px).<br><br>
+        <strong style="color:var(--color-text-primary); font-weight:500">Color:</strong> Keep blue as primary. Add a warm neutral (slate/stone) as a surface color and one accent (e.g. teal or violet) for success states and feature highlights.<br><br>
+        <strong style="color:var(--color-text-primary); font-weight:500">Spacing:</strong> Define a 4px base unit. Use 16/24/32/48px consistently. Landing and app should share the same padding scale.<br><br>
+        <strong style="color:var(--color-text-primary); font-weight:500">Hero:</strong> Replace the stock photo with a live demo GIF or animated mockup showing the actual agent running a task.
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top: 10px;">
+    <div class="card">
+      <span class="pill pill-blue">Tone & branding</span>
+      <div class="big-label">The product has great bones — it just needs a stronger identity</div>
+      <div class="card-body">AgentHub currently reads as a clean but generic B2B SaaS. Given it targets university students, you can afford to be warmer and more specific. Consider a mascot or named agent persona (like the "UNIT 754" branding on the robot — lean into this). Use the agent's name throughout the app ("UNIT 754 is ready", "Ask UNIT 754 to..."). This creates emotional attachment and differentiates from enterprise AI tools.</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="divider"></div>
+
+<div class="section">
+  <div class="section-title">Priority roadmap</div>
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 16px;">
+      <span class="pill pill-red" style="margin:0;white-space:nowrap">Week 1</span>
+      <div class="card-body" style="font-size:13px">Fix dead-end connections in Settings · Add onboarding checklist to Dashboard · Fix "Current Plan" badge logic · Separate Danger Zone visually</div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 16px;">
+      <span class="pill pill-amber" style="margin:0;white-space:nowrap">Week 2</span>
+      <div class="card-body" style="font-size:13px">Build output viewer for service results · Add notification system · Pre-fill referral code · Rename "Run" buttons to action-specific labels</div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 16px;">
+      <span class="pill pill-blue" style="margin:0;white-space:nowrap">Week 3</span>
+      <div class="card-body" style="font-size:13px">Unify type scale and spacing system · Replace hero image with product demo · Add help docs and in-app tooltips · Mobile responsiveness audit</div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 16px;">
+      <span class="pill pill-green" style="margin:0;white-space:nowrap">Month 2</span>
+      <div class="card-body" style="font-size:13px">Agent persona / mascot system · Uptime sparkline charts · Activity log with filtering · Social sharing on referral page</div>
+    </div>
+  </div>
+</div>

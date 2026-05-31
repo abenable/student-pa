@@ -1,22 +1,96 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import { authClient } from '#/lib/auth-client'
-import { ShieldAlert } from 'lucide-react'
+import { ShieldAlert, CheckCircle, XCircle, Clock, AlertTriangle, Loader2 } from 'lucide-react'
+
+import { isAdmin } from '#/lib/roles'
 
 export const Route = createFileRoute('/dashboard/admin/agents')({
   component: AgentsDirectory,
 })
 
+interface Agent {
+  id: string
+  name: string
+  studentName: string
+  status: string
+  containerName: string
+  containerRunning: boolean
+  createdAt: string
+  user: { name: string | null; email: string | null }
+}
+
+function StatusBadge({ status }: { status: string }) {
+  switch (status) {
+    case 'RUNNING':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-700 dark:text-green-300 text-xs font-bold">
+          <CheckCircle className="h-3 w-3" />
+          Running
+        </span>
+      )
+    case 'PENDING_APPROVAL':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs font-bold">
+          <Clock className="h-3 w-3" />
+          Pending
+        </span>
+      )
+    case 'PROVISIONING':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 text-xs font-bold">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Provisioning
+        </span>
+      )
+    case 'ERROR':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/10 text-red-700 dark:text-red-300 text-xs font-bold">
+          <AlertTriangle className="h-3 w-3" />
+          Error
+        </span>
+      )
+    default:
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-neutral-500/10 text-neutral-700 dark:text-neutral-300 text-xs font-bold">
+          <XCircle className="h-3 w-3" />
+          {status}
+        </span>
+      )
+  }
+}
+
 function AgentsDirectory() {
   const { data: session } = authClient.useSession()
+  const [agents, setAgents] = useState<Agent[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const isAdmin = session?.user?.role === 'admin'
+  const isAdminUser = isAdmin(session?.user?.role)
 
-  if (!isAdmin) {
+  useEffect(() => {
+    if (!isAdminUser) return
+    async function fetchAgents() {
+      try {
+        const res = await fetch('/api/admin/approvals')
+        if (res.ok) {
+          const data = await res.json()
+          setAgents(data.pending || [])
+        }
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAgents()
+  }, [isAdminUser])
+
+  if (!isAdminUser) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#121314] flex flex-col items-center justify-center text-center px-6">
-        <ShieldAlert className="h-12 w-12 mb-4" color="#c81b3a" />
-        <h1 className="text-2xl font-semibold text-black dark:text-white mb-2">Access Denied</h1>
-        <p className="text-base text-black/60 dark:text-white/60 mb-6">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center text-center px-6">
+        <ShieldAlert className="h-12 w-12 mb-4 text-red-500" />
+        <h1 className="text-2xl font-semibold text-foreground mb-2">Access Denied</h1>
+        <p className="text-base text-foreground/60 mb-6">
           You don't have permission to view this page.
         </p>
         <Link
@@ -37,7 +111,7 @@ function AgentsDirectory() {
       >
         ← Admin Dashboard
       </Link>
-      <h1 className="text-[44px] font-light leading-[1.25] tracking-[0.1px] font-['Roboto'] text-black dark:text-white">
+      <h1 className="text-[44px] font-light leading-[1.25] tracking-[0.1px] font-['Roboto'] text-foreground">
         Agents
       </h1>
 
@@ -45,24 +119,46 @@ function AgentsDirectory() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-black/10 dark:border-white/10">
-                <th className="px-6 py-3 font-medium text-black/60 dark:text-white/60">Agent Name</th>
-                <th className="px-6 py-3 font-medium text-black/60 dark:text-white/60">Student</th>
-                <th className="px-6 py-3 font-medium text-black/60 dark:text-white/60">Status</th>
-                <th className="px-6 py-3 font-medium text-black/60 dark:text-white/60">Container</th>
-                <th className="px-6 py-3 font-medium text-black/60 dark:text-white/60">Created</th>
-                <th className="px-6 py-3 font-medium text-black/60 dark:text-white/60">Actions</th>
+              <tr className="border-b border-border">
+                <th className="px-6 py-3 font-medium text-foreground/60">Agent Name</th>
+                <th className="px-6 py-3 font-medium text-foreground/60">Student</th>
+                <th className="px-6 py-3 font-medium text-foreground/60">Status</th>
+                <th className="px-6 py-3 font-medium text-foreground/60">Container</th>
+                <th className="px-6 py-3 font-medium text-foreground/60">Created</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td
-                  colSpan={6}
-                  className="px-6 py-12 text-center text-black/60 dark:text-white/60"
-                >
-                  No agents to display
-                </td>
-              </tr>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-foreground/60">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    Loading...
+                  </td>
+                </tr>
+              ) : agents.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-foreground/60">
+                    No agents to display
+                  </td>
+                </tr>
+              ) : (
+                agents.map((agent) => (
+                  <tr key={agent.id} className="border-b border-border/50 last:border-0">
+                    <td className="px-6 py-4 font-medium text-foreground">{agent.name}</td>
+                    <td className="px-6 py-4 text-foreground/80">
+                      <div>{agent.studentName}</div>
+                      <div className="text-xs text-foreground/50">{agent.user.email}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <StatusBadge status={agent.status} />
+                    </td>
+                    <td className="px-6 py-4 text-foreground/60 text-xs font-mono">{agent.containerName}</td>
+                    <td className="px-6 py-4 text-foreground/50 text-xs">
+                      {new Date(agent.createdAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
