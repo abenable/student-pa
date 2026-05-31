@@ -1,0 +1,22 @@
+# build output
+dist
+.output
+
+# local env / secrets
+.env
+.env.local
+
+# dev tools
+.vite
+*.log
+
+# git
+.git
+.gitignore
+
+# os / editor
+.DS_Store
+*.swp
+*.swo
+.idea
+.vscode
