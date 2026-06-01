@@ -14,4 +14,6 @@ COPY main.py auth_telethon.py ./
 
 RUN mkdir -p /data /agents
 
+ENV TELEGRAM_SESSION=/data/botfather_session
+
 CMD ["uvicorn", "main:api", "--host", "0.0.0.0", "--port", "8000"]

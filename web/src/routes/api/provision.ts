@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { prisma } from '#/db'
 import { auth } from '#/lib/auth'
 
-const WORKER_URL = process.env.WORKER_URL || 'http://127.0.0.1:8000'
+const WORKER_URL = process.env.WORKER_URL || 'http://worker:8000'
 const PROVISIONER_SECRET = process.env.PROVISIONER_SECRET
 
 async function getSessionUserId(request: Request): Promise<string | null> {

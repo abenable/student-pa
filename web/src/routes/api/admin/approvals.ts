@@ -3,7 +3,7 @@ import { prisma } from '#/db'
 import { auth } from '#/lib/auth'
 import { isAdmin } from '#/lib/roles'
 
-const WORKER_URL = process.env.WORKER_URL || 'http://127.0.0.1:8000'
+const WORKER_URL = process.env.WORKER_URL || 'http://worker:8000'
 const PROVISIONER_SECRET = process.env.PROVISIONER_SECRET
 
 async function getSessionUser(request: Request): Promise<{ id: string; role?: string } | null> {
