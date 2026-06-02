@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import React, { useEffect, useState } from 'react'
 import { authClient } from '#/lib/auth-client'
-import { LogOut, Copy, Check, Gift, Users, Bot, AlertTriangle, Clock, Loader2, CheckCircle, ArrowRight } from 'lucide-react'
+import { LogOut, Copy, Check, Gift, Users, Bot, AlertTriangle, Clock, Loader2, CheckCircle, ArrowRight, RefreshCw } from 'lucide-react'
 
 export const Route = createFileRoute('/dashboard/settings')({
   component: SettingsPage,
@@ -212,20 +212,45 @@ function SettingsPage() {
                   <div className="h-10 w-10 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">
                     <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h2 className="text-lg font-semibold text-foreground mb-1">
                       Agent is {agent.status === 'ERROR' ? 'in error' : 'stopped'}
                     </h2>
                     <p className="text-sm text-foreground/60 mb-4 max-w-md">
-                      Your agent <strong>{agent.name}</strong> is not running. You can recreate it to start fresh.
+                      Your agent <strong>{agent.name}</strong> is not running. You can try resuming the setup or recreate it to start fresh.
                     </p>
-                    <Link
-                      to="/dashboard/onboarding"
-                      className="inline-flex items-center gap-2 bg-[#0070d1] text-white rounded-full px-6 py-2.5 h-11 font-bold text-sm hover:bg-[#005bb5] transition-all hover:scale-105 active:scale-95"
-                    >
-                      Recreate Agent
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setAgentLoading(true)
+                          try {
+                            const res = await fetch('/api/provision/resume', { method: 'POST' })
+                            const data = await res.json()
+                            if (res.ok && data.agent) {
+                              setAgent(data.agent)
+                            } else {
+                              window.location.reload()
+                            }
+                          } catch {
+                            window.location.reload()
+                          } finally {
+                            setAgentLoading(false)
+                          }
+                        }}
+                        className="inline-flex items-center gap-2 bg-[#0070d1] text-white rounded-full px-6 py-2.5 h-11 font-bold text-sm hover:bg-[#005bb5] transition-all hover:scale-105 active:scale-95"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        Retry Setup
+                      </button>
+                      <Link
+                        to="/dashboard/onboarding"
+                        className="inline-flex items-center gap-2 border border-foreground/20 text-foreground rounded-full px-6 py-2.5 h-11 font-bold text-sm hover:bg-foreground/5 transition-all hover:scale-105 active:scale-95"
+                      >
+                        Recreate Agent
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </section>

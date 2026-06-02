@@ -6,7 +6,7 @@ import { isAdmin } from '#/lib/roles'
 const WORKER_URL = process.env.WORKER_URL || 'http://worker:8000'
 const PROVISIONER_SECRET = process.env.PROVISIONER_SECRET
 
-async function getSessionUser(request: Request): Promise<{ id: string; role?: string } | null> {
+async function getSessionUser(request: Request): Promise<{ id: string; role?: string | null } | null> {
   try {
     // @ts-ignore
     const result = await auth.api.getSession({ headers: request.headers })
@@ -125,6 +125,21 @@ export const Route = createFileRoute('/api/admin/approvals')({
 
           const phase1Data = await phase1Res.json()
 
+          // Persist phase 1 success immediately so the user can see progress
+          await prisma.agent.update({
+            where: { id: agentId },
+            data: {
+              botUsername: phase1Data.bot_username || null,
+              botToken: phase1Data.bot_token || null,
+              litellmKey: phase1Data.litellm_key || null,
+              status: 'PROVISIONING',
+              provisioningStep: phase1Data.provisioning_status || 'bot_created',
+              containerRunning: false,
+              approvedAt: new Date(),
+              approvedBy: user.id,
+            },
+          })
+
           // Phase 2: Docker container
           const phase2Res = await fetch(`${WORKER_URL}/provision/phase2`, {
             method: 'POST',
@@ -138,22 +153,25 @@ export const Route = createFileRoute('/api/admin/approvals')({
           })
 
           let containerRunning = false
+          let provisioningStep = phase1Data.provisioning_status || 'bot_created'
+          let finalStatus: 'RUNNING' | 'ERROR' | 'PROVISIONING' = 'PROVISIONING'
+
           if (!phase2Res.ok) {
             console.warn('Worker phase 2 failed:', await phase2Res.text().catch(() => 'unknown error'))
+            finalStatus = 'ERROR'
+            provisioningStep = 'container_pending'
           } else {
             containerRunning = true
+            finalStatus = 'RUNNING'
+            provisioningStep = 'ready'
           }
 
           const updated = await prisma.agent.update({
             where: { id: agentId },
             data: {
-              botUsername: phase1Data.bot_username || null,
-              botToken: phase1Data.bot_token || null,
-              litellmKey: phase1Data.litellm_key || null,
-              status: containerRunning ? 'RUNNING' : 'ERROR',
+              status: finalStatus,
+              provisioningStep,
               containerRunning,
-              approvedAt: new Date(),
-              approvedBy: user.id,
             },
           })
 

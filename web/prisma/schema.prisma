@@ -90,6 +90,7 @@ model Agent {
   botToken          String?
   litellmKey        String?
   status            AgentStatus @default(PENDING_APPROVAL)
+  provisioningStep  String?
   approvedAt        DateTime?
   approvedBy        String?
   containerRunning  Boolean     @default(false)

@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { authClient } from '#/lib/auth-client'
 import {
   Zap,
@@ -24,6 +24,16 @@ interface AgentData {
   name: string
   status: string
   containerRunning: boolean
+  provisioningStep?: string | null
+  botUsername?: string | null
+}
+
+interface WorkerStatus {
+  provisioning_status?: string
+  container_running?: boolean
+  bot_username?: string
+  phase2_attempts?: number
+  last_error?: string | null
 }
 
 function DashboardIndex() {
@@ -32,40 +42,104 @@ function DashboardIndex() {
   const [loading, setLoading] = useState(true)
   const [agent, setAgent] = useState<AgentData | null>(null)
   const [onboardingSkipped, setOnboardingSkipped] = useState(false)
+  const [workerStatus, setWorkerStatus] = useState<WorkerStatus | null>(null)
+  const [resuming, setResuming] = useState(false)
   const name = session?.user?.name || 'Agent'
 
-  useEffect(() => {
-    async function checkAgent() {
-      try {
-        const res = await fetch('/api/provision')
-        if (!res.ok) {
-          setAgent(null)
-          setLoading(false)
-          return
-        }
-        const data = await res.json()
-        const userRole = data.role || (session?.user as any)?.role
-        if (userRole === 'admin' || data.onboardingSkipped) {
-          setOnboardingSkipped(true)
-          setAgent(null)
-          setLoading(false)
-          return
-        }
-        if (data.agent) {
-          setAgent(data.agent)
-          setLoading(false)
-          return
-        }
-        navigate({ to: '/dashboard/onboarding', replace: true })
-      } catch {
+  const fetchAgent = useCallback(async () => {
+    try {
+      const res = await fetch('/api/provision')
+      if (!res.ok) {
         setAgent(null)
         setLoading(false)
+        return
       }
-    }
-    if (session?.user) {
-      checkAgent()
+      const data = await res.json()
+      const userRole = data.role || (session?.user as any)?.role
+      if (userRole === 'admin' || data.onboardingSkipped) {
+        setOnboardingSkipped(true)
+        setAgent(null)
+        setLoading(false)
+        return
+      }
+      if (data.agent) {
+        setAgent(data.agent)
+        setLoading(false)
+        return
+      }
+      navigate({ to: '/dashboard/onboarding', replace: true })
+    } catch {
+      setAgent(null)
+      setLoading(false)
     }
   }, [session, navigate])
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchAgent()
+    }
+  }, [session, fetchAgent])
+
+  // Poll worker status when provisioning or in error state
+  useEffect(() => {
+    if (!agent || agent.status === 'RUNNING' || agent.status === 'PENDING_APPROVAL') {
+      return
+    }
+
+    async function pollWorkerStatus() {
+      try {
+        const res = await fetch('/api/provision/status')
+        if (res.ok) {
+          const data = await res.json()
+          setWorkerStatus(data)
+          // If container is now ready, refresh agent from DB
+          if (data.provisioning_status === 'ready' && data.container_running) {
+            fetchAgent()
+          }
+        }
+      } catch {
+        // ignore polling errors
+      }
+    }
+
+    pollWorkerStatus()
+    const interval = setInterval(pollWorkerStatus, 5000)
+    return () => clearInterval(interval)
+  }, [agent?.status, agent?.id, fetchAgent])
+
+  const handleResume = async () => {
+    if (!agent) return
+    setResuming(true)
+    try {
+      const res = await fetch('/api/provision/resume', { method: 'POST' })
+      const data = await res.json()
+      if (res.ok && data.agent) {
+        setAgent(data.agent)
+        setWorkerStatus(data.workerStatus || null)
+      } else {
+        // Refresh to get latest DB state
+        fetchAgent()
+      }
+    } catch {
+      fetchAgent()
+    } finally {
+      setResuming(false)
+    }
+  }
+
+  // Helper to render provisioning checklist items
+  const botCreated = Boolean(
+    workerStatus?.bot_username || agent?.botUsername
+  )
+  const keyCreated = Boolean(
+    workerStatus?.provisioning_status &&
+      ['bot_created', 'creating_key', 'key_pending', 'starting_container', 'container_retrying', 'ready'].includes(
+        workerStatus.provisioning_status
+      )
+  )
+  const containerReady = Boolean(
+    workerStatus?.container_running && workerStatus?.provisioning_status === 'ready'
+  )
 
   if (loading) {
     return (
@@ -88,7 +162,7 @@ function DashboardIndex() {
           </h1>
         </div>
         <p className="text-lg text-black/60 dark:text-white/60 leading-[1.5] mt-1">
-          Here's what's happening with your agent.
+          Here&apos;s what&apos;s happening with your agent.
         </p>
       </header>
 
@@ -122,18 +196,60 @@ function DashboardIndex() {
           </div>
         )}
 
-        {agent?.status === 'PROVISIONING' && (
-          <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+        {(agent?.status === 'PROVISIONING' || agent?.status === 'ERROR') && (
+          <div className="flex flex-col md:flex-row gap-6 items-start">
             <div className="flex-1">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 text-sm font-medium">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Provisioning
+                {agent.status === 'ERROR' ? 'Provisioning Failed' : 'Provisioning'}
               </div>
-              <p className="mt-3 text-xl font-semibold text-black dark:text-white">Setting up your agent...</p>
-              <p className="mt-1 text-sm text-black/60 dark:text-white/60 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#0070d1]" />
-                This takes about 30 seconds
+              <p className="mt-3 text-xl font-semibold text-black dark:text-white">
+                {agent.status === 'ERROR' ? 'Setup needs attention' : 'Setting up your agent...'}
               </p>
+              {agent.status === 'ERROR' && workerStatus?.last_error && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {workerStatus.last_error.slice(0, 200)}
+                </p>
+              )}
+              {/* Provisioning checklist */}
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className={`shrink-0 ${botCreated ? 'text-green-500' : 'text-black/30 dark:text-white/30'}`}>
+                    {botCreated ? <CheckCircle className="w-4 h-4" /> : <Loader2 className="w-4 h-4 animate-spin" />}
+                  </span>
+                  <span className={botCreated ? 'text-black/70 dark:text-white/70' : 'text-black/50 dark:text-white/50'}>
+                    Telegram Bot {botCreated ? `(@${workerStatus?.bot_username || agent?.botUsername})` : 'creating...'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className={`shrink-0 ${keyCreated ? 'text-green-500' : 'text-black/30 dark:text-white/30'}`}>
+                    {keyCreated ? <CheckCircle className="w-4 h-4" /> : <Loader2 className="w-4 h-4 animate-spin" />}
+                  </span>
+                  <span className={keyCreated ? 'text-black/70 dark:text-white/70' : 'text-black/50 dark:text-white/50'}>
+                    API Key {keyCreated ? 'generated' : 'pending...'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className={`shrink-0 ${containerReady ? 'text-green-500' : agent.status === 'ERROR' ? 'text-red-500' : 'text-black/30 dark:text-white/30'}`}>
+                    {containerReady ? <CheckCircle className="w-4 h-4" /> : agent.status === 'ERROR' ? <AlertTriangle className="w-4 h-4" /> : <Loader2 className="w-4 h-4 animate-spin" />}
+                  </span>
+                  <span className={containerReady ? 'text-black/70 dark:text-white/70' : agent.status === 'ERROR' ? 'text-red-600 dark:text-red-400' : 'text-black/50 dark:text-white/50'}>
+                    Agent Container {containerReady ? 'ready' : agent.status === 'ERROR' ? 'failed' : 'starting...'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {agent.status === 'ERROR' && (
+                <button
+                  onClick={handleResume}
+                  disabled={resuming}
+                  className="bg-[#0070d1] text-white rounded-full px-7 py-3 h-12 font-bold text-lg inline-flex items-center gap-2 hover:bg-[#005bb5] transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {resuming ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                  {resuming ? 'Resuming...' : 'Retry Setup'}
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -171,22 +287,33 @@ function DashboardIndex() {
           </div>
         )}
 
-        {(!agent || ['STOPPED', 'ERROR'].includes(agent.status)) && (
+        {(!agent || ['STOPPED'].includes(agent.status)) && (
           <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
             <div className="flex-1">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 text-red-700 dark:text-red-300 text-sm font-medium">
                 <AlertTriangle className="h-3.5 w-3.5" />
-                {agent?.status === 'ERROR' ? 'Error' : 'No Agent'}
+                {agent?.status === 'STOPPED' ? 'Stopped' : 'No Agent'}
               </div>
               <p className="mt-3 text-xl font-semibold text-black dark:text-white">
-                {agent?.status === 'ERROR' ? 'Something went wrong' : 'You don\'t have an agent yet'}
+                {agent?.status === 'STOPPED' ? 'Your agent is stopped' : 'You don\'t have an agent yet'}
               </p>
               <p className="mt-1 text-sm text-black/60 dark:text-white/60 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-[#0070d1]" />
-                {agent?.status === 'ERROR' ? 'Please contact support' : 'Complete onboarding to create one'}
+                {agent?.status === 'STOPPED' ? 'Use Retry Setup to start it again' : 'Complete onboarding to create one'}
               </p>
             </div>
-            {!agent && (
+            {agent?.status === 'STOPPED' ? (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleResume}
+                  disabled={resuming}
+                  className="bg-[#0070d1] text-white rounded-full px-7 py-3 h-12 font-bold text-lg inline-flex items-center gap-2 hover:bg-[#005bb5] transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {resuming ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                  {resuming ? 'Resuming...' : 'Retry Setup'}
+                </button>
+              </div>
+            ) : !agent && (
               <div className="flex items-center gap-3">
                 <Link
                   to="/dashboard/onboarding"
@@ -241,15 +368,12 @@ function DashboardIndex() {
 
             {/* Connect Telegram */}
             <li className="flex items-center gap-3">
-              <span className={`h-5 w-5 rounded-full border-2 shrink-0 ${agent?.status === 'RUNNING' ? 'border-black/20 dark:border-white/20' : 'border-black/20 dark:border-white/20'}`} />
-              <span className={`text-sm ${agent?.status === 'RUNNING' ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}>
+              <span className={`h-5 w-5 rounded-full border-2 shrink-0 ${botCreated || agent?.status === 'RUNNING' ? 'border-[#0070d1] bg-[#0070d1] flex items-center justify-center' : 'border-black/20 dark:border-white/20'}`}>
+                {(botCreated || agent?.status === 'RUNNING') && <CheckCircle className="h-3 w-3 text-white" />}
+              </span>
+              <span className={`text-sm ${botCreated || agent?.status === 'RUNNING' ? 'text-black/70 dark:text-white/70 line-through' : 'text-black/50 dark:text-white/50'}`}>
                 Connect your Telegram bot
               </span>
-              {agent?.status === 'RUNNING' && (
-                <Link to="/dashboard/settings" className="ml-auto text-xs text-[#0070d1] font-medium hover:underline">
-                  Settings →
-                </Link>
-              )}
             </li>
 
             {/* Run first service */}

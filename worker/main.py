@@ -124,6 +124,7 @@ def load_agent_info(user_id: str) -> dict | None:
 
 
 def save_agent_info(user_id: str, data: dict) -> None:
+    """Persist agent public data (and secrets separately) atomically."""
     _SECRET_KEYS = {"bot_token", "litellm_key"}
     path = _agent_file(user_id)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -131,13 +132,18 @@ def save_agent_info(user_id: str, data: dict) -> None:
     secrets = {k: v for k, v in data.items() if k in _SECRET_KEYS}
     public = {k: v for k, v in data.items() if k not in _SECRET_KEYS}
 
-    with open(path, "w") as f:
+    # Atomic write for public data
+    tmp_path = path.with_suffix(".tmp")
+    with open(tmp_path, "w") as f:
         json.dump(public, f, indent=2)
+    tmp_path.replace(path)
 
     if secrets:
         secrets_path = _secrets_file(user_id)
-        with open(secrets_path, "w") as f:
+        tmp_secrets = secrets_path.with_suffix(".tmp")
+        with open(tmp_secrets, "w") as f:
             json.dump(secrets, f, indent=2)
+        tmp_secrets.replace(secrets_path)
         secrets_path.chmod(0o600)
 
 
@@ -153,6 +159,36 @@ def update_agent_info(user_id: str, **updates) -> dict:
     info["updated_at"] = int(time.time())
     save_agent_info(user_id, info)
     return info
+
+
+# ── Onboarding progress persistence ───────────────────────────────────────────
+
+
+def _onboarding_file(user_id: str) -> Path:
+    return AGENTS_BASE_DIR / user_id / "onboarding.json"
+
+
+def load_onboarding_state(user_id: str) -> dict | None:
+    path = _onboarding_file(user_id)
+    if not path.exists():
+        return None
+    with open(path) as f:
+        return json.load(f)
+
+
+def save_onboarding_state(user_id: str, data: dict) -> None:
+    path = _onboarding_file(user_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    with open(tmp, "w") as f:
+        json.dump(data, f, indent=2)
+    tmp.replace(path)
+
+
+def delete_onboarding_state(user_id: str) -> None:
+    path = _onboarding_file(user_id)
+    if path.exists():
+        path.unlink()
 
 
 def refresh_agent_runtime_status(info: dict) -> dict:
@@ -279,8 +315,6 @@ async def ensure_litellm_key(user_id: str, info: dict) -> dict:
         provisioning_status="bot_created",
         last_error=None,
     )
-    resp.raise_for_status()
-    return resp.json()["key"]
 
 
 async def _wait_for_botfather_reply(
@@ -683,6 +717,55 @@ async def provision_phase2(req: Phase2Request, x_secret: str = Header(...)):
         raise HTTPException(status_code=404, detail=str(e))
 
 
+@api.post("/provision/resume")
+async def provision_resume(req: Phase2Request, x_secret: str = Header(...)):
+    """Resume provisioning from wherever it left off.
+
+    - If bot exists but no key → create key.
+    - If key exists but container not running → start container.
+    - If everything is ready → return current state.
+    """
+    if x_secret != PROVISIONER_SECRET:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    user_id = req.telegram_user_id
+    info = load_agent_info(user_id)
+    if not info:
+        raise HTTPException(status_code=404, detail="No agent found. Run /start to create one.")
+
+    # Refresh container state in case it was manually restarted
+    info = refresh_agent_runtime_status(info)
+
+    # Already fully ready?
+    if info.get("container_running") and info.get("provisioning_status") == "ready":
+        return info
+
+    # If we don't even have a bot token yet, we can't resume
+    if not info.get("bot_token"):
+        raise HTTPException(
+            status_code=400,
+            detail="Agent creation has not started yet (no bot token). Run /start."
+        )
+
+    # Step 1: ensure LiteLLM key exists
+    if not info.get("litellm_key"):
+        try:
+            info = await ensure_litellm_key(user_id, info)
+        except AgentSetupError as e:
+            raise HTTPException(status_code=503, detail=str(e))
+
+    # Step 2: ensure container is running
+    if not info.get("container_running"):
+        try:
+            info = await do_provision_phase2(user_id)
+        except AgentContainerError as e:
+            raise HTTPException(status_code=503, detail=str(e))
+        except AgentSetupError as e:
+            raise HTTPException(status_code=503, detail=str(e))
+
+    return info
+
+
 @api.get("/provision/status/{telegram_user_id}")
 async def provision_status(telegram_user_id: str, x_secret: str = Header(...)):
     if x_secret != PROVISIONER_SECRET:
@@ -738,13 +821,27 @@ def _agent_status_message(info: dict) -> str:
     attempts = info.get("phase2_attempts", 0)
     last_error = info.get("last_error")
 
-    if status == "ready":
+    # Determine checklist state
+    bot_created = bool(info.get("bot_username") and info.get("bot_token"))
+    key_created = bool(info.get("litellm_key"))
+    container_ready = bool(info.get("container_running") and status == "ready")
+
+    if status == "ready" and container_ready:
         return (
-            f"✅ Your agent is ready.\n\n"
-            f"Agent: {agent_name}\n"
-            f"Bot: @{bot_username}\n\n"
+            f"✅ *Your agent is ready*\n\n"
+            f"*Agent:* {agent_name}\n"
+            f"*Bot:* @{bot_username}\n\n"
             f"DM @{bot_username} to chat with your agent."
         )
+
+    # Build checklist
+    checklist = ""
+    checklist += f"{'✅' if bot_created else '⏳'} Telegram Bot created"
+    if bot_created:
+        checklist += f" (@{bot_username})"
+    checklist += "\n"
+    checklist += f"{'✅' if key_created else '⏳'} API key generated\n"
+    checklist += f"{'✅' if container_ready else '❌'} Agent container ready"
 
     if status in {
         "bot_created",
@@ -753,34 +850,71 @@ def _agent_status_message(info: dict) -> str:
         "starting_container",
         "container_retrying",
     }:
-        return (
-            f"⏳ Your agent bot was created and setup is still running.\n\n"
-            f"Agent: {agent_name}\n"
-            f"Bot: @{bot_username}\n"
-            f"Status: {status.replace('_', ' ')}\n"
-            f"Container attempts: {attempts}\n\n"
+        header = f"⏳ *Setup in progress* — *{agent_name}*\n\n"
+        footer = (
+            f"\nContainer attempts: {attempts}\n\n"
             "Send /status to check again or /retry to continue setup."
         )
+        return header + checklist + footer
 
-    message = (
-        f"⚠️ Your agent bot was created, but the container is still pending.\n\n"
-        f"Agent: {agent_name}\n"
-        f"Bot: @{bot_username}\n"
-        f"Status: {status.replace('_', ' ')}\n"
-        f"Container attempts: {attempts}\n\n"
+    header = f"⚠️ *Setup needs attention* — *{agent_name}*\n\n"
+    footer = (
+        f"\nContainer attempts: {attempts}\n\n"
         "Send /retry after the server/image issue is fixed."
     )
     if last_error:
-        message += f"\n\nLast error: {last_error[:600]}"
-    return message
+        footer += f"\n\n*Last error:* `{last_error[:400]}`"
+    return header + checklist + footer
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    existing = load_agent_info(str(update.effective_user.id))
+    user_id = str(update.effective_user.id)
+    existing = load_agent_info(user_id)
     if existing:
         existing = refresh_agent_runtime_status(existing)
         await update.message.reply_text(_agent_status_message(existing))
         return ConversationHandler.END
+
+    progress = load_onboarding_state(user_id)
+    if progress:
+        step = progress.get("step")
+        context.user_data["agent_name"] = progress.get("agent_name")
+        context.user_data["student_name"] = progress.get("student_name")
+        context.user_data["bio"] = progress.get("bio")
+
+        if step == "AGENT_NAME":
+            await update.message.reply_text(
+                "⏳ You already started creating an agent.\n\n"
+                "What would you like to name your agent?"
+            )
+            return AGENT_NAME
+        elif step == "STUDENT_NAME":
+            agent_name = progress.get("agent_name", "your agent")
+            await update.message.reply_text(
+                f'You named it "{agent_name}".\n\n'
+                "What is your first name?"
+            )
+            return STUDENT_NAME
+        elif step in ("BIO", "provisioning"):
+            keyboard = [
+                [InlineKeyboardButton(text, callback_data=value)]
+                for text, value in BIO_OPTIONS
+            ]
+            await update.message.reply_text(
+                "Almost done — tell me a bit about yourself:\n"
+                "Tap an option below or type your own.",
+                reply_markup=InlineKeyboardMarkup(keyboard),
+            )
+            return BIO
+
+    # Fresh start — persist intent immediately so we never lose the user
+    save_onboarding_state(user_id, {
+        "step": "AGENT_NAME",
+        "agent_name": None,
+        "student_name": None,
+        "bio": None,
+        "created_at": int(time.time()),
+    })
 
     await update.message.reply_text(
         "👋 Welcome to Student-PA!\n\n"
@@ -891,14 +1025,20 @@ async def _finish_onboarding(update: Update, context: ContextTypes.DEFAULT_TYPE)
         logger.exception("Agent container startup failed")
         info = load_agent_info(req.telegram_user_id)
         if info:
-            await _reply_text(update, context, _agent_status_message(info))
+            await _reply_text(update, context,
+                "⚠️ Bot was created, but the agent container couldn't start.\n\n"
+                + _agent_status_message(info)
+            )
         else:
             await _reply_text(update, context, f"❌ {e}")
     except AgentSetupError as e:
         logger.exception("Agent setup failed")
         info = load_agent_info(req.telegram_user_id)
         if info:
-            await _reply_text(update, context, _agent_status_message(info))
+            await _reply_text(update, context,
+                "⚠️ Bot was created, but something else went wrong.\n\n"
+                + _agent_status_message(info)
+            )
         else:
             await _reply_text(update, context, f"❌ {e}")
     except Exception:
@@ -960,16 +1100,38 @@ async def retry_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         )
         return
     info = refresh_agent_runtime_status(info)
-    if info.get("container_running"):
+    if info.get("container_running") and info.get("provisioning_status") == "ready":
         await update.message.reply_text(_agent_status_message(info))
         return
 
+    if not info.get("bot_token"):
+        await update.message.reply_text(
+            "❌ Your agent setup has not started yet. Send /start to begin."
+        )
+        return
+
+    # Determine what needs to be done
+    needs_key = not info.get("litellm_key")
+    needs_container = not info.get("container_running")
+
+    steps = []
+    if needs_key:
+        steps.append("generate API key")
+    if needs_container:
+        steps.append("start container")
+
     await update.message.reply_text(
-        f"Retrying setup for @{info['bot_username']}.\n"
-        "I will update you when the container is ready or still pending."
+        f"🔄 Resuming setup for @{info['bot_username']}...\n"
+        f"Steps remaining: {', '.join(steps)}.\n"
+        "I will update you when done."
     )
+
     try:
-        info = await do_provision_phase2(user_id)
+        # Use the resume logic which handles both key and container
+        if needs_key:
+            info = await ensure_litellm_key(user_id, info)
+        if not info.get("container_running"):
+            info = await do_provision_phase2(user_id)
         await update.message.reply_text(_agent_status_message(info))
     except (AgentContainerError, AgentSetupError):
         logger.exception("Manual retry failed for user %s", user_id)
