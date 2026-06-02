@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { Footer } from '#/components/Footer'
 import { useState, useRef, useEffect } from 'react'
 import { Check, Zap, Crown, Building2, Gift, ChevronDown, Sparkles } from 'lucide-react'
 import { Button } from '#/components/ui/button'
@@ -368,21 +369,7 @@ function PricingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-background text-foreground py-4 border-t border-border">
-        <div className="mx-auto px-6" style={{ maxWidth: '1152px' }}>
-          <div className="flex flex-col md:flex-row items-center justify-between gap-3">
-            <span className="text-xs text-muted-foreground">
-              &copy; 2026 AgentHub. Student intelligence, redefined.
-            </span>
-            <div className="flex items-center gap-5">
-              <Link to="/privacy" className="text-muted-foreground hover:text-foreground text-xs transition-colors">Privacy</Link>
-              <Link to="/terms" className="text-muted-foreground hover:text-foreground text-xs transition-colors">Terms</Link>
-              <Link to="/support" className="text-muted-foreground hover:text-foreground text-xs transition-colors">Support</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { Footer } from '#/components/Footer'
 import { useState, useRef, useEffect } from 'react'
 import {
   Mail,
@@ -312,36 +313,7 @@ function Home() {
         </div>
       </section>
 
-      {/* Section 5: Footer */}
-      <footer className="bg-background text-foreground py-4 border-t border-border">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-3">
-            <span className="text-xs text-muted-foreground">
-              &copy; 2026 AgentHub. Student intelligence, redefined.
-            </span>
-            <div className="flex items-center gap-5">
-              <Link
-                to="/"
-                className="text-muted-foreground hover:text-foreground text-xs transition-colors"
-              >
-                Privacy
-              </Link>
-              <Link
-                to="/"
-                className="text-muted-foreground hover:text-foreground text-xs transition-colors"
-              >
-                Terms
-              </Link>
-              <Link
-                to="/"
-                className="text-muted-foreground hover:text-foreground text-xs transition-colors"
-              >
-                Support
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
