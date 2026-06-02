@@ -8,7 +8,7 @@ import {
   History,
 } from 'lucide-react'
 
-export const Route = createFileRoute('/dashboard/services/$serviceId')({
+export const Route = createFileRoute('/dashboard/products/$serviceId')({
   component: ServiceDetailPage,
 })
 
@@ -71,7 +71,7 @@ function ServiceDetailPage() {
     return (
       <div className="max-w-5xl mx-auto px-6 py-12">
         <Link
-          to="/dashboard/services"
+            to="/dashboard/products"
           className="text-[#0070d1] font-medium"
         >
           ← Back to Products
@@ -84,7 +84,7 @@ function ServiceDetailPage() {
             The service you are looking for does not exist.
           </p>
           <Link
-            to="/dashboard/services"
+          to="/dashboard/products"
             className="mt-6 inline-flex bg-[#0070d1] text-white rounded-full px-7 py-3 h-12 items-center text-lg font-bold hover:bg-[#0064b7] transition-colors"
           >
             Browse Products
@@ -98,7 +98,7 @@ function ServiceDetailPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-12">
-      <Link to="/dashboard/services" className="text-[#0070d1] font-medium">
+      <Link to="/dashboard/products" className="text-[#0070d1] font-medium">
         ← Back to Products
       </Link>
 

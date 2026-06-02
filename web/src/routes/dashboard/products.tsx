@@ -22,7 +22,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 
-export const Route = createFileRoute('/dashboard/services')({
+export const Route = createFileRoute('/dashboard/products')({
   component: ProductsPage,
 })
 
@@ -297,7 +297,7 @@ function ProductsPage() {
                   {workflow.description}
                 </p>
                 <Link
-                  to="/dashboard/services/$serviceId"
+                  to="/dashboard/products/$serviceId"
                   params={{ serviceId: workflow.id }}
                   className="mt-4 inline-flex bg-[#0070d1] text-white rounded-full px-6 py-2.5 h-10 items-center text-sm font-bold hover:bg-[#0064b7] transition-colors self-start"
                 >

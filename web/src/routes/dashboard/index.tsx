@@ -280,7 +280,7 @@ function DashboardIndex() {
                 Chat
               </Link>
               <Link
-                to="/dashboard/services"
+                to="/dashboard/products"
                 className="bg-[#0070d1] text-white rounded-full px-7 py-3 h-12 font-bold text-lg inline-flex items-center gap-2 hover:bg-[#005bb5] transition-all hover:scale-105 active:scale-95"
               >
                 Run a Service
@@ -391,7 +391,7 @@ function DashboardIndex() {
                 Run your first workflow
               </span>
               {agent?.status === 'RUNNING' && (
-                <Link to="/dashboard/services" className="ml-auto text-xs text-[#0070d1] font-medium hover:underline">
+                <Link to="/dashboard/products" className="ml-auto text-xs text-[#0070d1] font-medium hover:underline">
                   Products →
                 </Link>
               )}
@@ -464,7 +464,7 @@ function DashboardIndex() {
             No activity yet. Run a workflow to see results here.
           </p>
           <Link
-            to="/dashboard/services"
+            to="/dashboard/products"
             className="inline-flex items-center gap-1.5 mt-3 text-[#0070d1] font-medium hover:underline transition-transform hover:translate-x-0.5"
           >
             Browse Products

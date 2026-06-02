@@ -22,15 +22,15 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
-import { Route as DashboardServicesRouteImport } from './routes/dashboard/services'
 import { Route as DashboardProvisionRouteImport } from './routes/dashboard/provision'
+import { Route as DashboardProductsRouteImport } from './routes/dashboard/products'
 import { Route as DashboardOnboardingRouteImport } from './routes/dashboard/onboarding'
 import { Route as DashboardChatRouteImport } from './routes/dashboard/chat'
 import { Route as DashboardAdminRouteImport } from './routes/dashboard/admin'
 import { Route as ApiReferralRouteImport } from './routes/api/referral'
 import { Route as ApiProvisionRouteImport } from './routes/api/provision'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
-import { Route as DashboardServicesServiceIdRouteImport } from './routes/dashboard/services.$serviceId'
+import { Route as DashboardProductsServiceIdRouteImport } from './routes/dashboard/products.$serviceId'
 import { Route as DashboardAdminUsersRouteImport } from './routes/dashboard/admin.users'
 import { Route as DashboardAdminAgentsRouteImport } from './routes/dashboard/admin.agents'
 import { Route as ApiProvisionStatusRouteImport } from './routes/api/provision.status'
@@ -106,14 +106,14 @@ const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardServicesRoute = DashboardServicesRouteImport.update({
-  id: '/services',
-  path: '/services',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const DashboardProvisionRoute = DashboardProvisionRouteImport.update({
   id: '/provision',
   path: '/provision',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardProductsRoute = DashboardProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardOnboardingRoute = DashboardOnboardingRouteImport.update({
@@ -146,11 +146,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardServicesServiceIdRoute =
-  DashboardServicesServiceIdRouteImport.update({
+const DashboardProductsServiceIdRoute =
+  DashboardProductsServiceIdRouteImport.update({
     id: '/$serviceId',
     path: '/$serviceId',
-    getParentRoute: () => DashboardServicesRoute,
+    getParentRoute: () => DashboardProductsRoute,
   } as any)
 const DashboardAdminUsersRoute = DashboardAdminUsersRouteImport.update({
   id: '/users',
@@ -216,8 +216,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/admin': typeof DashboardAdminRouteWithChildren
   '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/onboarding': typeof DashboardOnboardingRoute
+  '/dashboard/products': typeof DashboardProductsRouteWithChildren
   '/dashboard/provision': typeof DashboardProvisionRoute
-  '/dashboard/services': typeof DashboardServicesRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/admin/agents': typeof ApiAdminAgentsRoute
@@ -229,7 +229,7 @@ export interface FileRoutesByFullPath {
   '/api/provision/status': typeof ApiProvisionStatusRoute
   '/dashboard/admin/agents': typeof DashboardAdminAgentsRoute
   '/dashboard/admin/users': typeof DashboardAdminUsersRoute
-  '/dashboard/services/$serviceId': typeof DashboardServicesServiceIdRoute
+  '/dashboard/products/$serviceId': typeof DashboardProductsServiceIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -248,8 +248,8 @@ export interface FileRoutesByTo {
   '/dashboard/admin': typeof DashboardAdminRouteWithChildren
   '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/onboarding': typeof DashboardOnboardingRoute
+  '/dashboard/products': typeof DashboardProductsRouteWithChildren
   '/dashboard/provision': typeof DashboardProvisionRoute
-  '/dashboard/services': typeof DashboardServicesRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard': typeof DashboardIndexRoute
   '/api/admin/agents': typeof ApiAdminAgentsRoute
@@ -261,7 +261,7 @@ export interface FileRoutesByTo {
   '/api/provision/status': typeof ApiProvisionStatusRoute
   '/dashboard/admin/agents': typeof DashboardAdminAgentsRoute
   '/dashboard/admin/users': typeof DashboardAdminUsersRoute
-  '/dashboard/services/$serviceId': typeof DashboardServicesServiceIdRoute
+  '/dashboard/products/$serviceId': typeof DashboardProductsServiceIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -282,8 +282,8 @@ export interface FileRoutesById {
   '/dashboard/admin': typeof DashboardAdminRouteWithChildren
   '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/onboarding': typeof DashboardOnboardingRoute
+  '/dashboard/products': typeof DashboardProductsRouteWithChildren
   '/dashboard/provision': typeof DashboardProvisionRoute
-  '/dashboard/services': typeof DashboardServicesRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/admin/agents': typeof ApiAdminAgentsRoute
@@ -295,7 +295,7 @@ export interface FileRoutesById {
   '/api/provision/status': typeof ApiProvisionStatusRoute
   '/dashboard/admin/agents': typeof DashboardAdminAgentsRoute
   '/dashboard/admin/users': typeof DashboardAdminUsersRoute
-  '/dashboard/services/$serviceId': typeof DashboardServicesServiceIdRoute
+  '/dashboard/products/$serviceId': typeof DashboardProductsServiceIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -317,8 +317,8 @@ export interface FileRouteTypes {
     | '/dashboard/admin'
     | '/dashboard/chat'
     | '/dashboard/onboarding'
+    | '/dashboard/products'
     | '/dashboard/provision'
-    | '/dashboard/services'
     | '/dashboard/settings'
     | '/dashboard/'
     | '/api/admin/agents'
@@ -330,7 +330,7 @@ export interface FileRouteTypes {
     | '/api/provision/status'
     | '/dashboard/admin/agents'
     | '/dashboard/admin/users'
-    | '/dashboard/services/$serviceId'
+    | '/dashboard/products/$serviceId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -349,8 +349,8 @@ export interface FileRouteTypes {
     | '/dashboard/admin'
     | '/dashboard/chat'
     | '/dashboard/onboarding'
+    | '/dashboard/products'
     | '/dashboard/provision'
-    | '/dashboard/services'
     | '/dashboard/settings'
     | '/dashboard'
     | '/api/admin/agents'
@@ -362,7 +362,7 @@ export interface FileRouteTypes {
     | '/api/provision/status'
     | '/dashboard/admin/agents'
     | '/dashboard/admin/users'
-    | '/dashboard/services/$serviceId'
+    | '/dashboard/products/$serviceId'
   id:
     | '__root__'
     | '/'
@@ -382,8 +382,8 @@ export interface FileRouteTypes {
     | '/dashboard/admin'
     | '/dashboard/chat'
     | '/dashboard/onboarding'
+    | '/dashboard/products'
     | '/dashboard/provision'
-    | '/dashboard/services'
     | '/dashboard/settings'
     | '/dashboard/'
     | '/api/admin/agents'
@@ -395,7 +395,7 @@ export interface FileRouteTypes {
     | '/api/provision/status'
     | '/dashboard/admin/agents'
     | '/dashboard/admin/users'
-    | '/dashboard/services/$serviceId'
+    | '/dashboard/products/$serviceId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -513,18 +513,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/services': {
-      id: '/dashboard/services'
-      path: '/services'
-      fullPath: '/dashboard/services'
-      preLoaderRoute: typeof DashboardServicesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/dashboard/provision': {
       id: '/dashboard/provision'
       path: '/provision'
       fullPath: '/dashboard/provision'
       preLoaderRoute: typeof DashboardProvisionRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/products': {
+      id: '/dashboard/products'
+      path: '/products'
+      fullPath: '/dashboard/products'
+      preLoaderRoute: typeof DashboardProductsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/onboarding': {
@@ -569,12 +569,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/services/$serviceId': {
-      id: '/dashboard/services/$serviceId'
+    '/dashboard/products/$serviceId': {
+      id: '/dashboard/products/$serviceId'
       path: '/$serviceId'
-      fullPath: '/dashboard/services/$serviceId'
-      preLoaderRoute: typeof DashboardServicesServiceIdRouteImport
-      parentRoute: typeof DashboardServicesRoute
+      fullPath: '/dashboard/products/$serviceId'
+      preLoaderRoute: typeof DashboardProductsServiceIdRouteImport
+      parentRoute: typeof DashboardProductsRoute
     }
     '/dashboard/admin/users': {
       id: '/dashboard/admin/users'
@@ -656,23 +656,23 @@ const DashboardAdminRouteWithChildren = DashboardAdminRoute._addFileChildren(
   DashboardAdminRouteChildren,
 )
 
-interface DashboardServicesRouteChildren {
-  DashboardServicesServiceIdRoute: typeof DashboardServicesServiceIdRoute
+interface DashboardProductsRouteChildren {
+  DashboardProductsServiceIdRoute: typeof DashboardProductsServiceIdRoute
 }
 
-const DashboardServicesRouteChildren: DashboardServicesRouteChildren = {
-  DashboardServicesServiceIdRoute: DashboardServicesServiceIdRoute,
+const DashboardProductsRouteChildren: DashboardProductsRouteChildren = {
+  DashboardProductsServiceIdRoute: DashboardProductsServiceIdRoute,
 }
 
-const DashboardServicesRouteWithChildren =
-  DashboardServicesRoute._addFileChildren(DashboardServicesRouteChildren)
+const DashboardProductsRouteWithChildren =
+  DashboardProductsRoute._addFileChildren(DashboardProductsRouteChildren)
 
 interface DashboardRouteChildren {
   DashboardAdminRoute: typeof DashboardAdminRouteWithChildren
   DashboardChatRoute: typeof DashboardChatRoute
   DashboardOnboardingRoute: typeof DashboardOnboardingRoute
+  DashboardProductsRoute: typeof DashboardProductsRouteWithChildren
   DashboardProvisionRoute: typeof DashboardProvisionRoute
-  DashboardServicesRoute: typeof DashboardServicesRouteWithChildren
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
@@ -681,8 +681,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdminRoute: DashboardAdminRouteWithChildren,
   DashboardChatRoute: DashboardChatRoute,
   DashboardOnboardingRoute: DashboardOnboardingRoute,
+  DashboardProductsRoute: DashboardProductsRouteWithChildren,
   DashboardProvisionRoute: DashboardProvisionRoute,
-  DashboardServicesRoute: DashboardServicesRouteWithChildren,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }

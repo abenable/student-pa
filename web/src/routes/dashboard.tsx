@@ -44,7 +44,7 @@ function DashboardLayout() {
   const navLinks = [
     { label: 'Dashboard', to: '/dashboard' as const },
     { label: 'Chat', to: '/dashboard/chat' as const },
-    { label: 'Products', to: '/dashboard/services' as const },
+    { label: 'Products', to: '/dashboard/products' as const },
     { label: 'Settings', to: '/dashboard/settings' as const },
     ...(isAdmin((session.user as any).role) ? [{ label: 'Admin', to: '/dashboard/admin' as const }] : []),
   ]

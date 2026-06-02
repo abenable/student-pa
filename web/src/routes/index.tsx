@@ -48,7 +48,7 @@ function Home() {
   const navLinks = isAuth
     ? [
         { label: 'Dashboard', to: '/dashboard' as const },
-        { label: 'Services', to: '/dashboard/services' as const },
+        { label: 'Products', to: '/dashboard/products' as const },
         { label: 'Pricing', to: '/pricing' as const },
         { label: 'Settings', to: '/dashboard/settings' as const },
         ...(isAdminUser ? [{ label: 'Admin', to: '/dashboard/admin' as const }] : []),
