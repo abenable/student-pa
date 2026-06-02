@@ -13,6 +13,7 @@ import {
   Loader2,
   RefreshCw,
   ListChecks,
+  MessageCircle,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/dashboard/')({
@@ -272,6 +273,13 @@ function DashboardIndex() {
             </div>
             <div className="flex items-center gap-3">
               <Link
+                to="/dashboard/chat"
+                className="rounded-full px-7 py-3 h-12 font-bold text-lg inline-flex items-center gap-2 border border-[#0070d1] text-[#0070d1] hover:bg-[#0070d1]/5 transition-all hover:scale-105 active:scale-95"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Chat
+              </Link>
+              <Link
                 to="/dashboard/services"
                 className="bg-[#0070d1] text-white rounded-full px-7 py-3 h-12 font-bold text-lg inline-flex items-center gap-2 hover:bg-[#005bb5] transition-all hover:scale-105 active:scale-95"
               >
@@ -376,15 +384,15 @@ function DashboardIndex() {
               </span>
             </li>
 
-            {/* Run first service */}
+            {/* Run first workflow */}
             <li className="flex items-center gap-3">
               <span className={`h-5 w-5 rounded-full border-2 shrink-0 ${agent?.status === 'RUNNING' ? 'border-black/20 dark:border-white/20' : 'border-black/20 dark:border-white/20'}`} />
               <span className={`text-sm ${agent?.status === 'RUNNING' ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}>
-                Run your first service
+                Run your first workflow
               </span>
               {agent?.status === 'RUNNING' && (
                 <Link to="/dashboard/services" className="ml-auto text-xs text-[#0070d1] font-medium hover:underline">
-                  Services →
+                  Products →
                 </Link>
               )}
             </li>
@@ -410,7 +418,7 @@ function DashboardIndex() {
             </div>
             <div>
               <p className="text-2xl font-semibold text-black dark:text-white">0</p>
-              <p className="text-sm text-black/60 dark:text-white/60">Services Run</p>
+              <p className="text-sm text-black/60 dark:text-white/60">Workflows Run</p>
             </div>
           </div>
           <p className="mt-3 text-xs text-black/50 dark:text-white/50">Completed tasks</p>
@@ -453,13 +461,13 @@ function DashboardIndex() {
             <Activity className="h-7 w-7 text-[#0070d1]" />
           </div>
           <p className="mt-4 text-black/60 dark:text-white/60">
-            No activity yet. Run a service to see results here.
+            No activity yet. Run a workflow to see results here.
           </p>
           <Link
             to="/dashboard/services"
             className="inline-flex items-center gap-1.5 mt-3 text-[#0070d1] font-medium hover:underline transition-transform hover:translate-x-0.5"
           >
-            Go to Services
+            Browse Products
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>

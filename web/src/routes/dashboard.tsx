@@ -43,7 +43,8 @@ function DashboardLayout() {
 
   const navLinks = [
     { label: 'Dashboard', to: '/dashboard' as const },
-    { label: 'Services', to: '/dashboard/services' as const },
+    { label: 'Chat', to: '/dashboard/chat' as const },
+    { label: 'Products', to: '/dashboard/services' as const },
     { label: 'Settings', to: '/dashboard/settings' as const },
     ...(isAdmin((session.user as any).role) ? [{ label: 'Admin', to: '/dashboard/admin' as const }] : []),
   ]
@@ -60,7 +61,7 @@ function DashboardLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Top Nav */}
-      <header className="h-12 bg-background flex items-center justify-between px-4 md:px-6 shrink-0 border-b border-border">
+      <header className="sticky top-0 z-50 h-12 bg-background/95 backdrop-blur-md flex items-center justify-between px-4 md:px-6 shrink-0 border-b border-border">
         <div className="flex items-center">
           <Link to="/dashboard" className="brand-logo hover:opacity-90 transition-opacity">
             AgentHub
@@ -143,6 +144,20 @@ function DashboardLayout() {
       <main className="flex-1 bg-white dark:bg-black text-black dark:text-white">
         <Outlet />
       </main>
+
+      {/* Footer */}
+      <footer className="bg-white dark:bg-black border-t border-black/5 dark:border-white/5 py-6">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-3">
+          <span className="text-xs text-black/40 dark:text-white/40">
+            &copy; 2026 AgentHub. Student intelligence, redefined.
+          </span>
+          <div className="flex items-center gap-5">
+            <Link to="/privacy" className="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs transition-colors">Privacy</Link>
+            <Link to="/terms" className="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs transition-colors">Terms</Link>
+            <Link to="/support" className="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs transition-colors">Support</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

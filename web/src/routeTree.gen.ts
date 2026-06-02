@@ -25,15 +25,21 @@ import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settin
 import { Route as DashboardServicesRouteImport } from './routes/dashboard/services'
 import { Route as DashboardProvisionRouteImport } from './routes/dashboard/provision'
 import { Route as DashboardOnboardingRouteImport } from './routes/dashboard/onboarding'
+import { Route as DashboardChatRouteImport } from './routes/dashboard/chat'
 import { Route as DashboardAdminRouteImport } from './routes/dashboard/admin'
 import { Route as ApiReferralRouteImport } from './routes/api/referral'
 import { Route as ApiProvisionRouteImport } from './routes/api/provision'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as DashboardServicesServiceIdRouteImport } from './routes/dashboard/services.$serviceId'
 import { Route as DashboardAdminUsersRouteImport } from './routes/dashboard/admin.users'
 import { Route as DashboardAdminAgentsRouteImport } from './routes/dashboard/admin.agents'
+import { Route as ApiProvisionStatusRouteImport } from './routes/api/provision.status'
+import { Route as ApiProvisionResumeRouteImport } from './routes/api/provision.resume'
 import { Route as ApiOnboardingSkipRouteImport } from './routes/api/onboarding.skip'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiAdminUsersRouteImport } from './routes/api/admin/users'
 import { Route as ApiAdminApprovalsRouteImport } from './routes/api/admin/approvals'
+import { Route as ApiAdminAgentsRouteImport } from './routes/api/admin/agents'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -115,6 +121,11 @@ const DashboardOnboardingRoute = DashboardOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardChatRoute = DashboardChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAdminRoute = DashboardAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -128,6 +139,11 @@ const ApiReferralRoute = ApiReferralRouteImport.update({
 const ApiProvisionRoute = ApiProvisionRouteImport.update({
   id: '/api/provision',
   path: '/api/provision',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardServicesServiceIdRoute =
@@ -146,6 +162,16 @@ const DashboardAdminAgentsRoute = DashboardAdminAgentsRouteImport.update({
   path: '/agents',
   getParentRoute: () => DashboardAdminRoute,
 } as any)
+const ApiProvisionStatusRoute = ApiProvisionStatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => ApiProvisionRoute,
+} as any)
+const ApiProvisionResumeRoute = ApiProvisionResumeRouteImport.update({
+  id: '/resume',
+  path: '/resume',
+  getParentRoute: () => ApiProvisionRoute,
+} as any)
 const ApiOnboardingSkipRoute = ApiOnboardingSkipRouteImport.update({
   id: '/api/onboarding/skip',
   path: '/api/onboarding/skip',
@@ -156,9 +182,19 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminUsersRoute = ApiAdminUsersRouteImport.update({
+  id: '/api/admin/users',
+  path: '/api/admin/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminApprovalsRoute = ApiAdminApprovalsRouteImport.update({
   id: '/api/admin/approvals',
   path: '/api/admin/approvals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminAgentsRoute = ApiAdminAgentsRouteImport.update({
+  id: '/api/admin/agents',
+  path: '/api/admin/agents',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -174,17 +210,23 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
-  '/api/provision': typeof ApiProvisionRoute
+  '/api/chat': typeof ApiChatRoute
+  '/api/provision': typeof ApiProvisionRouteWithChildren
   '/api/referral': typeof ApiReferralRoute
   '/dashboard/admin': typeof DashboardAdminRouteWithChildren
+  '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/onboarding': typeof DashboardOnboardingRoute
   '/dashboard/provision': typeof DashboardProvisionRoute
   '/dashboard/services': typeof DashboardServicesRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/admin/agents': typeof ApiAdminAgentsRoute
   '/api/admin/approvals': typeof ApiAdminApprovalsRoute
+  '/api/admin/users': typeof ApiAdminUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/onboarding/skip': typeof ApiOnboardingSkipRoute
+  '/api/provision/resume': typeof ApiProvisionResumeRoute
+  '/api/provision/status': typeof ApiProvisionStatusRoute
   '/dashboard/admin/agents': typeof DashboardAdminAgentsRoute
   '/dashboard/admin/users': typeof DashboardAdminUsersRoute
   '/dashboard/services/$serviceId': typeof DashboardServicesServiceIdRoute
@@ -200,17 +242,23 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
-  '/api/provision': typeof ApiProvisionRoute
+  '/api/chat': typeof ApiChatRoute
+  '/api/provision': typeof ApiProvisionRouteWithChildren
   '/api/referral': typeof ApiReferralRoute
   '/dashboard/admin': typeof DashboardAdminRouteWithChildren
+  '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/onboarding': typeof DashboardOnboardingRoute
   '/dashboard/provision': typeof DashboardProvisionRoute
   '/dashboard/services': typeof DashboardServicesRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/api/admin/agents': typeof ApiAdminAgentsRoute
   '/api/admin/approvals': typeof ApiAdminApprovalsRoute
+  '/api/admin/users': typeof ApiAdminUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/onboarding/skip': typeof ApiOnboardingSkipRoute
+  '/api/provision/resume': typeof ApiProvisionResumeRoute
+  '/api/provision/status': typeof ApiProvisionStatusRoute
   '/dashboard/admin/agents': typeof DashboardAdminAgentsRoute
   '/dashboard/admin/users': typeof DashboardAdminUsersRoute
   '/dashboard/services/$serviceId': typeof DashboardServicesServiceIdRoute
@@ -228,17 +276,23 @@ export interface FileRoutesById {
   '/services': typeof ServicesRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
-  '/api/provision': typeof ApiProvisionRoute
+  '/api/chat': typeof ApiChatRoute
+  '/api/provision': typeof ApiProvisionRouteWithChildren
   '/api/referral': typeof ApiReferralRoute
   '/dashboard/admin': typeof DashboardAdminRouteWithChildren
+  '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/onboarding': typeof DashboardOnboardingRoute
   '/dashboard/provision': typeof DashboardProvisionRoute
   '/dashboard/services': typeof DashboardServicesRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/admin/agents': typeof ApiAdminAgentsRoute
   '/api/admin/approvals': typeof ApiAdminApprovalsRoute
+  '/api/admin/users': typeof ApiAdminUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/onboarding/skip': typeof ApiOnboardingSkipRoute
+  '/api/provision/resume': typeof ApiProvisionResumeRoute
+  '/api/provision/status': typeof ApiProvisionStatusRoute
   '/dashboard/admin/agents': typeof DashboardAdminAgentsRoute
   '/dashboard/admin/users': typeof DashboardAdminUsersRoute
   '/dashboard/services/$serviceId': typeof DashboardServicesServiceIdRoute
@@ -257,17 +311,23 @@ export interface FileRouteTypes {
     | '/services'
     | '/support'
     | '/terms'
+    | '/api/chat'
     | '/api/provision'
     | '/api/referral'
     | '/dashboard/admin'
+    | '/dashboard/chat'
     | '/dashboard/onboarding'
     | '/dashboard/provision'
     | '/dashboard/services'
     | '/dashboard/settings'
     | '/dashboard/'
+    | '/api/admin/agents'
     | '/api/admin/approvals'
+    | '/api/admin/users'
     | '/api/auth/$'
     | '/api/onboarding/skip'
+    | '/api/provision/resume'
+    | '/api/provision/status'
     | '/dashboard/admin/agents'
     | '/dashboard/admin/users'
     | '/dashboard/services/$serviceId'
@@ -283,17 +343,23 @@ export interface FileRouteTypes {
     | '/services'
     | '/support'
     | '/terms'
+    | '/api/chat'
     | '/api/provision'
     | '/api/referral'
     | '/dashboard/admin'
+    | '/dashboard/chat'
     | '/dashboard/onboarding'
     | '/dashboard/provision'
     | '/dashboard/services'
     | '/dashboard/settings'
     | '/dashboard'
+    | '/api/admin/agents'
     | '/api/admin/approvals'
+    | '/api/admin/users'
     | '/api/auth/$'
     | '/api/onboarding/skip'
+    | '/api/provision/resume'
+    | '/api/provision/status'
     | '/dashboard/admin/agents'
     | '/dashboard/admin/users'
     | '/dashboard/services/$serviceId'
@@ -310,17 +376,23 @@ export interface FileRouteTypes {
     | '/services'
     | '/support'
     | '/terms'
+    | '/api/chat'
     | '/api/provision'
     | '/api/referral'
     | '/dashboard/admin'
+    | '/dashboard/chat'
     | '/dashboard/onboarding'
     | '/dashboard/provision'
     | '/dashboard/services'
     | '/dashboard/settings'
     | '/dashboard/'
+    | '/api/admin/agents'
     | '/api/admin/approvals'
+    | '/api/admin/users'
     | '/api/auth/$'
     | '/api/onboarding/skip'
+    | '/api/provision/resume'
+    | '/api/provision/status'
     | '/dashboard/admin/agents'
     | '/dashboard/admin/users'
     | '/dashboard/services/$serviceId'
@@ -338,9 +410,12 @@ export interface RootRouteChildren {
   ServicesRoute: typeof ServicesRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
-  ApiProvisionRoute: typeof ApiProvisionRoute
+  ApiChatRoute: typeof ApiChatRoute
+  ApiProvisionRoute: typeof ApiProvisionRouteWithChildren
   ApiReferralRoute: typeof ApiReferralRoute
+  ApiAdminAgentsRoute: typeof ApiAdminAgentsRoute
   ApiAdminApprovalsRoute: typeof ApiAdminApprovalsRoute
+  ApiAdminUsersRoute: typeof ApiAdminUsersRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiOnboardingSkipRoute: typeof ApiOnboardingSkipRoute
 }
@@ -459,6 +534,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardOnboardingRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/chat': {
+      id: '/dashboard/chat'
+      path: '/chat'
+      fullPath: '/dashboard/chat'
+      preLoaderRoute: typeof DashboardChatRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/admin': {
       id: '/dashboard/admin'
       path: '/admin'
@@ -478,6 +560,13 @@ declare module '@tanstack/react-router' {
       path: '/api/provision'
       fullPath: '/api/provision'
       preLoaderRoute: typeof ApiProvisionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/services/$serviceId': {
@@ -501,6 +590,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminAgentsRouteImport
       parentRoute: typeof DashboardAdminRoute
     }
+    '/api/provision/status': {
+      id: '/api/provision/status'
+      path: '/status'
+      fullPath: '/api/provision/status'
+      preLoaderRoute: typeof ApiProvisionStatusRouteImport
+      parentRoute: typeof ApiProvisionRoute
+    }
+    '/api/provision/resume': {
+      id: '/api/provision/resume'
+      path: '/resume'
+      fullPath: '/api/provision/resume'
+      preLoaderRoute: typeof ApiProvisionResumeRouteImport
+      parentRoute: typeof ApiProvisionRoute
+    }
     '/api/onboarding/skip': {
       id: '/api/onboarding/skip'
       path: '/api/onboarding/skip'
@@ -515,11 +618,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/users': {
+      id: '/api/admin/users'
+      path: '/api/admin/users'
+      fullPath: '/api/admin/users'
+      preLoaderRoute: typeof ApiAdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/approvals': {
       id: '/api/admin/approvals'
       path: '/api/admin/approvals'
       fullPath: '/api/admin/approvals'
       preLoaderRoute: typeof ApiAdminApprovalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/agents': {
+      id: '/api/admin/agents'
+      path: '/api/admin/agents'
+      fullPath: '/api/admin/agents'
+      preLoaderRoute: typeof ApiAdminAgentsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -552,6 +669,7 @@ const DashboardServicesRouteWithChildren =
 
 interface DashboardRouteChildren {
   DashboardAdminRoute: typeof DashboardAdminRouteWithChildren
+  DashboardChatRoute: typeof DashboardChatRoute
   DashboardOnboardingRoute: typeof DashboardOnboardingRoute
   DashboardProvisionRoute: typeof DashboardProvisionRoute
   DashboardServicesRoute: typeof DashboardServicesRouteWithChildren
@@ -561,6 +679,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdminRoute: DashboardAdminRouteWithChildren,
+  DashboardChatRoute: DashboardChatRoute,
   DashboardOnboardingRoute: DashboardOnboardingRoute,
   DashboardProvisionRoute: DashboardProvisionRoute,
   DashboardServicesRoute: DashboardServicesRouteWithChildren,
@@ -570,6 +689,20 @@ const DashboardRouteChildren: DashboardRouteChildren = {
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
   DashboardRouteChildren,
+)
+
+interface ApiProvisionRouteChildren {
+  ApiProvisionResumeRoute: typeof ApiProvisionResumeRoute
+  ApiProvisionStatusRoute: typeof ApiProvisionStatusRoute
+}
+
+const ApiProvisionRouteChildren: ApiProvisionRouteChildren = {
+  ApiProvisionResumeRoute: ApiProvisionResumeRoute,
+  ApiProvisionStatusRoute: ApiProvisionStatusRoute,
+}
+
+const ApiProvisionRouteWithChildren = ApiProvisionRoute._addFileChildren(
+  ApiProvisionRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
@@ -584,9 +717,12 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesRoute: ServicesRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
-  ApiProvisionRoute: ApiProvisionRoute,
+  ApiChatRoute: ApiChatRoute,
+  ApiProvisionRoute: ApiProvisionRouteWithChildren,
   ApiReferralRoute: ApiReferralRoute,
+  ApiAdminAgentsRoute: ApiAdminAgentsRoute,
   ApiAdminApprovalsRoute: ApiAdminApprovalsRoute,
+  ApiAdminUsersRoute: ApiAdminUsersRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiOnboardingSkipRoute: ApiOnboardingSkipRoute,
 }
