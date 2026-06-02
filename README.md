@@ -1,165 +1,188 @@
 # Student Personal Assistant (Student-PA)
 
-A Dockerized [Hermes Agent](https://hermes-agent.nousresearch.com/) template pre-configured for university students. It bundles scheduling, document generation, academic research, and job-hunting workflows.
+**Open-source AI agent platform for university students.**
 
-## What's Inside
+Student-PA gives every student their own personal AI agent — accessible via Telegram — that helps with scheduling, academic writing, research, job applications, and more. Each student gets an isolated, containerized [Hermes Agent](https://hermes-agent.nousresearch.com/) instance with pre-built workflows and secure API-key management.
 
-- Base Image: `node:24-alpine` (multi-stage build for minimal size)
-- Agent Engine: [Hermes Agent](https://pypi.org/project/hermes-agent/) (Nous Research)
-- LLM Gateway: Self-hosted LiteLLM (OpenAI-compatible proxy for model routing + token billing)
-- Pre-built Services: 5 student workflow templates in `/services/`
-- Extras Installed: GWS CLI, YouTube, Web, Cron, Messaging
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Docker](https://img.shields.io/badge/built%20with-Docker-blue)](https://www.docker.com/)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
+[![Node](https://img.shields.io/badge/node-24%2B-green)](https://nodejs.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-## Quick Start (One-Liner Install)
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Screenshots & Demo](#screenshots--demo)
+- [Quick Start](#quick-start)
+- [Architecture](#architecture)
+- [Documentation](#documentation)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Security](#security)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+
+---
+
+## Features
+
+### For Students
+- **Personal AI Agent** — Each student gets a dedicated Telegram bot and isolated Docker container.
+- **5 Pre-built Services** — Ready-to-use academic workflows:
+  1. **Inbox & Calendar Manager** — Read Gmail, draft replies, extract deadlines, populate Google Calendar.
+  2. **Lab Report LaTeX Typesetter** — Convert raw notes and CSV data into compiled PDF lab reports.
+  3. **Job Application Engine** — Scrape job descriptions, draft tailored cover letters, log to Google Sheets.
+  4. **Academic Paper Interrogator** — Extract core problem, methodology, and results from dense PDFs.
+  5. **Lecture & Video Summarizer** — Generate structured study guides from YouTube transcripts.
+- **Telegram Gateway** — Chat with your agent anywhere, anytime.
+- **Google Workspace Integration** — Native Gmail, Calendar, Docs, and Sheets support via GWS CLI.
+
+### For Admins / Deployers
+- **Multi-tenant by Design** — One signup bot provisions isolated agent containers per student.
+- **Secure API Key Management** — Per-student LiteLLM keys with model restrictions and metadata tracking.
+- **Automatic Bot Creation** — Integrates with Telegram BotFather to spin up bots automatically.
+- **Web Dashboard** — TanStack Start-based admin dashboard with Better Auth and Prisma.
+- **Docker-first** — Everything runs in containers with dropped capabilities and non-root users.
+
+---
+
+## Screenshots & Demo
+
+> Coming soon! We are working on a public demo video and screenshot gallery. See [Issue #1](../../issues/1) if you'd like to help.
+
+---
+
+## Quick Start
+
+The fastest way to try Student-PA locally with Docker:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/abenable/student-pa/main/install.sh | bash
-```
-
-Non-interactive / headless:
-```bash
-export LITELLM_API_KEY="sk-your-key"
-export TELEGRAM_BOT_TOKEN="optional-bot-token"
-curl -fsSL https://raw.githubusercontent.com/abenable/student-pa/main/install.sh | bash -s -- --non-interactive
-```
-
-> **Note:** The repo is private. Use `gh api /repos/abenable/student-pa/contents/install.sh --jq '.content' | base64 -d | bash` instead of raw curl, or authenticate via `GH_TOKEN`.
-
-## Manual Build & Start
-
-If you prefer to clone and build from source:
-
-```bash
-# 1. Clone
+# 1. Clone the repository
 git clone https://github.com/abenable/student-pa.git
 cd student-pa
 
-# 2. Configure
+# 2. Configure environment
 cp .env.example .env
-# Edit .env with your LiteLLM URL and API key
+# Edit .env and fill in your keys (see docs/SETUP.md for details)
 
-# 3. Build & Start
+# 3. Build and start all services
 docker compose up -d --build
+
+# 4. Check that everything is running
+docker compose ps
 ```
 
-## Initialize Hermes (first run only)
+### Prerequisites
 
-```bash
-docker exec -it student-pa-agent hermes setup --non-interactive
+- [Docker](https://docs.docker.com/get-docker/) & Docker Compose
+- A [LiteLLM](https://docs.litellm.ai/) instance or OpenAI-compatible API endpoint
+- A Telegram bot token from [@BotFather](https://t.me/botfather)
+- (Optional) Telegram API ID / Hash from [my.telegram.org](https://my.telegram.org/apps) for automatic bot provisioning
+
+For detailed setup instructions (including production deployment, SSL, and cloud hosting), see **[docs/SETUP.md](docs/SETUP.md)**.
+
+---
+
+## Architecture
+
+Student-PA is a multi-service platform composed of three main components:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Student-PA Platform                     │
+├─────────────┬─────────────┬─────────────────────────────────┤
+│     Web     │   Worker    │         Agent (per student)      │
+│  Dashboard  │  Provisioner│                                  │
+│  (React 19) │  (FastAPI)  │  ┌───────────────────────────┐  │
+│  TanStack   │  Telegram   │  │   Hermes Agent Container  │  │
+│  Prisma DB  │  BotFather  │  │   - GWS CLI               │  │
+│             │  Orchestrator│  │   - LaTeX / pdflatex      │  │
+│             │             │  │   - Pre-built services      │  │
+│             │             │  │   - Memory & sessions       │  │
+└─────────────┴─────────────┴──┴───────────────────────────┴──┘
+                     │
+              LiteLLM Gateway
+         (OpenAI-compatible proxy)
 ```
 
-## Run a Service
+For a deep dive into how the pieces fit together, see **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
-Hermes one-shot mode (`-z`) returns clean text — perfect for scripting:
+---
 
-```bash
-docker exec -it student-pa-agent hermes -z \
-  "Read /app/services/inbox_calendar_manager.md and execute that workflow on my unread emails."
-```
+## Documentation
 
-Or use interactive chat:
+| Document | Purpose |
+|----------|---------|
+| [docs/SETUP.md](docs/SETUP.md) | Complete installation and configuration guide |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, data flow, and security model |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute code, report bugs, and propose features |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community standards and expected behavior |
+| [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
 
-```bash
-docker exec -it student-pa-agent hermes chat -q \
-  "Generate a LaTeX lab report from /home/hermes/student-data/lab3_notes.txt and compile it to PDF."
-```
+Additional service-level docs:
+- [Agent Services](agent/services/README.md) — The 5 pre-built student workflow templates.
+- [Web App](web/README.md) — TanStack Start web dashboard specifics.
 
-## Hermes Management Commands
+---
 
-| Command | Purpose |
-|---------|---------|
-| `hermes` | Interactive TUI / CLI chat |
-| `hermes -z "prompt"` | Scripted one-shot (clean stdout) |
-| `hermes chat -q "prompt"` | One-shot with tool transcript |
-| `hermes model` | Change provider / model |
-| `hermes tools` | Enable/disable toolsets |
-| `hermes cron list` | View scheduled jobs |
-| `hermes gateway run` | Start messaging gateway (Telegram, etc.) |
-| `hermes doctor` | Diagnose issues |
+## Roadmap
 
-## Out-of-the-Box Services (`/services/`)
+- [ ] Public demo instance with video walkthrough
+- [ ] OAuth2 login support (Google, GitHub) in web dashboard
+- [ ] Plugin system for custom student services
+- [ ] Support for additional messaging platforms (WhatsApp, Discord)
+- [ ] Kubernetes Helm chart for production deployments
+- [ ] Automated CI/CD for multi-arch Docker images
+- [ ] Multi-language support (i18n)
 
-| # | Service | File |
-|---|---------|------|
-| 1 | **Inbox & Calendar Manager** | `inbox_calendar_manager.md` |
-| 2 | **Lab Report LaTeX Typesetter** | `lab_report_latex_generator.md` |
-| 3 | **Job Application Engine** | `job_application_engine.md` |
-| 4 | **Academic Paper Interrogator** | `paper_interrogator.md` |
-| 5 | **Lecture & Video Summarizer** | `lecture_summarizer.md` |
+See [open issues](../../issues) and [discussions](../../discussions) for feature requests and ideas.
 
-## Data Persistence
+---
 
-| Host Path | Container Path | What's Stored |
-|-----------|----------------|---------------|
-| `./hermes-data` | `/home/hermes/.hermes` | Config, memory, skills, sessions, logs |
-| `./services` | `/app/services` | OOTB workflow templates (read-only) |
-| `./student-data` | `/home/hermes/student-data` | Student uploads (resumes, lab data, PDFs) |
+## Contributing
 
-## Google Workspace Integration (via GWS CLI)
+We welcome contributions from students, developers, and educators! Whether it's fixing a typo, adding a new service, or improving documentation, every contribution matters.
 
-All Gmail, Calendar, Docs, and Sheets operations go through the **GWS CLI** (installed from `npm`).
+- Read our **[Contributing Guide](CONTRIBUTING.md)** to get started.
+- Check out **[good first issues](../../issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)**.
+- Join the conversation in **[Discussions](../../discussions)**.
 
-### 1. Authenticate GWS
+Please note that this project follows a **[Code of Conduct](CODE_OF_CONDUCT.md)**. By participating, you agree to uphold it.
 
-Run once per student. Credentials are persisted in `./gws-auth`:
+---
 
-```bash
-docker exec -it student-pa-agent bash
-gws auth login
-```
+## Security
 
-> **Heads-up for unverified OAuth apps:** Google limits testing-mode apps to ~25 scopes. If `gws auth login` fails with "too many scopes", request only the services you need:
-> ```bash
-> gws auth login --scopes drive,gmail,calendar,sheets,docs
-> ```
+Security is a priority for Student-PA because we handle student data and API keys.
 
-### 2. Verify
+- Containers run as non-root users with minimal capabilities.
+- API keys are never committed to the repository (see `.gitignore`).
+- Each student receives an isolated Docker container and a unique LiteLLM API key.
 
-```bash
-docker exec -it student-pa-agent gws gmail +triage
-gws calendar +agenda
-```
+If you discover a security vulnerability, please **do not** open a public issue. Instead, follow the instructions in **[SECURITY.md](SECURITY.md)** to report it responsibly.
 
-> **Note:** The volume `./gws-auth:/home/hermes/.gws` ensures the OAuth tokens survive container restarts. Do not commit this directory.
+---
 
-### 3. Headless / CI reuse
+## License
 
-If you need to copy credentials to another machine:
+Student-PA is licensed under the [MIT License](LICENSE).
 
-```bash
-docker exec -it student-pa-agent bash
-gws auth export --unmasked > /home/hermes/student-data/gws-credentials.json
-```
+You are free to use, modify, distribute, and even build commercial services on top of it, provided the original copyright notice and license terms are included. See the [LICENSE](LICENSE) file for full details.
 
-Then on the target machine set `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE=/path/to/gws-credentials.json`.
+---
 
-## Optional: Telegram Gateway
+## Acknowledgments
 
-Uncomment the Telegram variables in `.env`, then:
+- Built on top of [Hermes Agent](https://hermes-agent.nousresearch.com/) by Nous Research.
+- Google Workspace integration powered by [GWS CLI](https://github.com/googleworkspace/google-workspace-cli).
+- UI built with [TanStack](https://tanstack.com/), [Tailwind CSS](https://tailwindcss.com/), and [shadcn/ui](https://ui.shadcn.com/).
 
-```bash
-docker exec -it student-pa-agent hermes gateway run
-```
+---
 
-The agent will respond to DMs and can deliver cron summaries to your Telegram chat.
-
-## Security Notes
-
-- The container runs as a non-root (`hermes`) user.
-- API keys live only in `.env` and the container's `~/.hermes/.env` — never committed.
-- Docker capabilities are dropped to the minimal set required.
-- See `.gitignore` to ensure sensitive paths are never tracked.
-
-## Troubleshooting
-
-**`host.docker.internal` does not resolve (Linux)**  
-The `docker-compose.yml` includes `extra_hosts` for this. If your LiteLLM is on a different host, use the direct IP/URL in `.env` instead.
-
-**Hermes says "provider not configured"**  
-Run `docker exec -it student-pa-agent hermes model` to select a model interactively, or ensure `LITELLM_API_BASE` and `LITELLM_API_KEY` are set in `.env`.
-
-**LaTeX compilation fails**  
-The image installs `texlive` and `texmf-dist-latexextra` (Alpine packages). If a specific `.sty` file is missing, install the corresponding `texmf-dist-*` package at build time in the Dockerfile.
-
-**`marker-pdf` is not installed**  
-To keep the Alpine image small, `marker-pdf` (which pulls in PyTorch) was omitted. PDF extraction uses `pymupdf` instead. If you need `marker-pdf`, switch to the Ubuntu-based Dockerfile or install it manually.
+<p align="center">
+  Made with ❤️ for students everywhere.<br>
+  <a href="https://github.com/abenable/student-pa">Star us on GitHub</a> if you find this useful!
+</p>
