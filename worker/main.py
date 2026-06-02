@@ -37,6 +37,8 @@ from telethon.tl.functions.contacts import ResolveUsernameRequest
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("telegram.request").setLevel(logging.WARNING)
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
@@ -469,6 +471,37 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return AGENT_NAME
 
 
+async def log_incoming_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Log enough update context to verify Telegram messages reach this process."""
+    user_id = update.effective_user.id if update.effective_user else None
+    chat_id = update.effective_chat.id if update.effective_chat else None
+
+    if update.effective_message:
+        text = update.effective_message.text or update.effective_message.caption or ""
+        logger.info(
+            "Incoming Telegram message user_id=%s chat_id=%s text=%r",
+            user_id,
+            chat_id,
+            text[:120],
+        )
+    elif update.callback_query:
+        logger.info(
+            "Incoming Telegram callback user_id=%s chat_id=%s data=%r",
+            user_id,
+            chat_id,
+            update.callback_query.data,
+        )
+
+
+async def telegram_error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    error = context.error
+    logger.error(
+        "Telegram handler failed for update=%r",
+        update,
+        exc_info=(type(error), error, error.__traceback__) if error else None,
+    )
+
+
 async def collect_agent_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data["agent_name"] = update.message.text.strip()
     await update.message.reply_text("Nice! What's your first name?")
@@ -678,7 +711,6 @@ onboarding_conv = ConversationHandler(
         ],
     },
     fallbacks=[CommandHandler("cancel", cancel)],
-    per_message=True,
 )
 
 # Rename conversation
@@ -688,7 +720,6 @@ rename_conv = ConversationHandler(
         RENAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, rename_finish)],
     },
     fallbacks=[CommandHandler("cancel", cancel)],
-    per_message=True,
 )
 
 # Delete conversation
@@ -698,10 +729,11 @@ delete_conv = ConversationHandler(
         DELETE: [CallbackQueryHandler(delete_callback)],
     },
     fallbacks=[CommandHandler("cancel", cancel)],
-    per_message=True,
 )
 
+telegram_app.add_handler(MessageHandler(filters.ALL, log_incoming_update), group=-1)
 telegram_app.add_handler(onboarding_conv)
 telegram_app.add_handler(rename_conv)
 telegram_app.add_handler(delete_conv)
 telegram_app.add_handler(CommandHandler("support", support_command))
+telegram_app.add_error_handler(telegram_error_handler)
