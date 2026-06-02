@@ -91,6 +91,7 @@ model Agent {
   litellmKey        String?
   status            AgentStatus @default(PENDING_APPROVAL)
   provisioningStep  String?
+  apiKey            String?
   approvedAt        DateTime?
   approvedBy        String?
   containerRunning  Boolean     @default(false)
