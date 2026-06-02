@@ -74,7 +74,7 @@ function ServiceDetailPage() {
           to="/dashboard/services"
           className="text-[#0070d1] font-medium"
         >
-          ← Back to Services
+          ← Back to Products
         </Link>
         <div className="mt-8">
           <h1 className="text-[44px] font-light leading-[1.25] tracking-[0.1px] font-['Roboto']">
@@ -87,7 +87,7 @@ function ServiceDetailPage() {
             to="/dashboard/services"
             className="mt-6 inline-flex bg-[#0070d1] text-white rounded-full px-7 py-3 h-12 items-center text-lg font-bold hover:bg-[#0064b7] transition-colors"
           >
-            Browse Services
+            Browse Products
           </Link>
         </div>
       </div>
@@ -99,7 +99,7 @@ function ServiceDetailPage() {
   return (
     <div className="max-w-5xl mx-auto px-6 py-12">
       <Link to="/dashboard/services" className="text-[#0070d1] font-medium">
-        ← Back to Services
+        ← Back to Products
       </Link>
 
       <div className="mt-8">

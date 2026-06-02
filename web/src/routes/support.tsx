@@ -31,7 +31,7 @@ const faqs = [
     id: 'run-services',
     question: 'How do I run services?',
     answer:
-      'Open your Dashboard and go to the Services tab. Browse available services like Lecture Summarizer, Report Generator, or Job Tracker. Click on a service to configure it, then either run it manually or set up triggers so your agent runs it automatically based on schedules or chat commands.',
+      'Open your Dashboard and go to the Products page. Browse available workflows like Lecture Summarizer, Report Generator, or Job Tracker. Click on a workflow to configure it, then either run it manually or set up triggers so your agent runs it automatically based on schedules or chat commands.',
     icon: Play,
   },
   {
