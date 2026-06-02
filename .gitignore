@@ -20,6 +20,15 @@ student-data/
 .env.local
 .env.production
 
+# Vite / Node build artifacts
+.vite/
+node_modules/
+web/node_modules/
+dist/
+web/dist/
+.next/
+*.tsbuildinfo
+
 # Python
 __pycache__/
 *.py[cod]

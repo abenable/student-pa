@@ -957,12 +957,24 @@ async def telegram_error_handler(update: object, context: ContextTypes.DEFAULT_T
 
 async def collect_agent_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data["agent_name"] = update.message.text.strip()
+    save_onboarding_state(str(update.effective_user.id), {
+        "step": "STUDENT_NAME",
+        "agent_name": context.user_data["agent_name"],
+        "student_name": None,
+        "bio": None,
+    })
     await update.message.reply_text("Nice! What's your first name?")
     return STUDENT_NAME
 
 
 async def collect_student_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data["student_name"] = update.message.text.strip()
+    save_onboarding_state(str(update.effective_user.id), {
+        "step": "BIO",
+        "agent_name": context.user_data["agent_name"],
+        "student_name": context.user_data["student_name"],
+        "bio": None,
+    })
 
     keyboard = [
         [InlineKeyboardButton(text, callback_data=value)]
@@ -990,6 +1002,13 @@ async def collect_bio_callback(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def _finish_onboarding(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     agent_name = context.user_data["agent_name"]
+    user_id = str(update.effective_user.id)
+    save_onboarding_state(user_id, {
+        "step": "provisioning",
+        "agent_name": context.user_data.get("agent_name"),
+        "student_name": context.user_data.get("student_name"),
+        "bio": context.user_data.get("bio"),
+    })
 
     msg = await _reply_text(update, context,
         f'⏳ Creating your personal agent "{agent_name}"...\n'
@@ -1013,16 +1032,31 @@ async def _finish_onboarding(update: Update, context: ContextTypes.DEFAULT_TYPE)
         # Phase 2: spin up the container
         data = await do_provision_phase2(req.telegram_user_id)
         await _reply_text(update, context, _agent_status_message(data))
+        delete_onboarding_state(user_id)
     except DuplicateAgentError as e:
         await _reply_text(update, context, f"❌ {e}")
     except BotFatherError as e:
         logger.error("BotFather error: %s", e)
+        save_onboarding_state(user_id, {
+            "step": "provisioning",
+            "agent_name": context.user_data.get("agent_name"),
+            "student_name": context.user_data.get("student_name"),
+            "bio": context.user_data.get("bio"),
+            "last_error": str(e),
+        })
         await _reply_text(update, context,
             "❌ Could not create the bot via BotFather. "
             "The username might be taken or you're rate-limited. Please try again."
         )
     except AgentContainerError as e:
         logger.exception("Agent container startup failed")
+        save_onboarding_state(user_id, {
+            "step": "provisioning",
+            "agent_name": context.user_data.get("agent_name"),
+            "student_name": context.user_data.get("student_name"),
+            "bio": context.user_data.get("bio"),
+            "last_error": str(e),
+        })
         info = load_agent_info(req.telegram_user_id)
         if info:
             await _reply_text(update, context,
@@ -1033,6 +1067,13 @@ async def _finish_onboarding(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await _reply_text(update, context, f"❌ {e}")
     except AgentSetupError as e:
         logger.exception("Agent setup failed")
+        save_onboarding_state(user_id, {
+            "step": "provisioning",
+            "agent_name": context.user_data.get("agent_name"),
+            "student_name": context.user_data.get("student_name"),
+            "bio": context.user_data.get("bio"),
+            "last_error": str(e),
+        })
         info = load_agent_info(req.telegram_user_id)
         if info:
             await _reply_text(update, context,
@@ -1041,8 +1082,15 @@ async def _finish_onboarding(update: Update, context: ContextTypes.DEFAULT_TYPE)
             )
         else:
             await _reply_text(update, context, f"❌ {e}")
-    except Exception:
+    except Exception as e:
         logger.exception("Unexpected error during provisioning")
+        save_onboarding_state(user_id, {
+            "step": "provisioning",
+            "agent_name": context.user_data.get("agent_name"),
+            "student_name": context.user_data.get("student_name"),
+            "bio": context.user_data.get("bio"),
+            "last_error": str(e),
+        })
         await _reply_text(update, context,
             "❌ Something went wrong while creating your agent. "
             "Please try again or contact support."
@@ -1081,14 +1129,42 @@ async def support_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 
 async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    info = load_agent_info(str(update.effective_user.id))
-    if not info:
-        await update.message.reply_text(
-            "You do not have an agent yet. Send /start to create one."
-        )
+    user_id = str(update.effective_user.id)
+    info = load_agent_info(user_id)
+    if info:
+        info = refresh_agent_runtime_status(info)
+        await update.message.reply_text(_agent_status_message(info))
         return
-    info = refresh_agent_runtime_status(info)
-    await update.message.reply_text(_agent_status_message(info))
+
+    progress = load_onboarding_state(user_id)
+    if progress:
+        step = progress.get("step")
+        if step == "AGENT_NAME":
+            msg = "⏳ Onboarding in progress — you still need to pick an agent name.\nSend /start to continue."
+        elif step == "STUDENT_NAME":
+            agent_name = progress.get("agent_name", "your agent")
+            msg = f'⏳ Onboarding in progress — you named it "{agent_name}" but still need to give your name.\nSend /start to continue.'
+        elif step == "BIO":
+            agent_name = progress.get("agent_name", "your agent")
+            msg = f'⏳ Onboarding in progress — you named it "{agent_name}" and gave your name, but still need to choose a bio.\nSend /start to continue.'
+        elif step == "provisioning":
+            agent_name = progress.get("agent_name", "your agent")
+            last_error = progress.get("last_error")
+            msg = (
+                f'⏳ Setup in progress for "{agent_name}".\n'
+                "The bot was created but the container may still be spinning up.\n"
+                "Send /retry to continue, or /start to check the latest status."
+            )
+            if last_error:
+                msg += f"\n\nLast error: `{last_error[:300]}`"
+        else:
+            msg = "⏳ Onboarding in progress. Send /start to continue."
+        await update.message.reply_text(msg)
+        return
+
+    await update.message.reply_text(
+        "You do not have an agent yet. Send /start to create one."
+    )
 
 
 async def retry_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1142,6 +1218,51 @@ async def retry_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await update.message.reply_text(
             "Retry failed unexpectedly. Send /status to see the current saved state."
         )
+
+
+async def continue_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user_id = str(update.effective_user.id)
+    progress = load_onboarding_state(user_id)
+    if not progress:
+        await update.message.reply_text(
+            "You do not have an ongoing onboarding. Send /start to create an agent."
+        )
+        return ConversationHandler.END
+
+    step = progress.get("step")
+    context.user_data["agent_name"] = progress.get("agent_name")
+    context.user_data["student_name"] = progress.get("student_name")
+    context.user_data["bio"] = progress.get("bio")
+
+    if step == "AGENT_NAME":
+        await update.message.reply_text(
+            "⏳ You already started creating an agent.\n\n"
+            "What would you like to name your agent?"
+        )
+        return AGENT_NAME
+    elif step == "STUDENT_NAME":
+        agent_name = progress.get("agent_name", "your agent")
+        await update.message.reply_text(
+            f'You named it "{agent_name}".\n\n'
+            "What is your first name?"
+        )
+        return STUDENT_NAME
+    elif step in ("BIO", "provisioning"):
+        keyboard = [
+            [InlineKeyboardButton(text, callback_data=value)]
+            for text, value in BIO_OPTIONS
+        ]
+        await update.message.reply_text(
+            "Almost done — tell me a bit about yourself:\n"
+            "Tap an option below or type your own.",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+        return BIO
+    else:
+        await update.message.reply_text(
+            "⏳ Onboarding in progress. Send /start to continue."
+        )
+        return ConversationHandler.END
 
 
 async def rename_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -1235,7 +1356,10 @@ telegram_app = Application.builder().token(SIGNUP_BOT_TOKEN).build()
 
 # Main onboarding conversation
 onboarding_conv = ConversationHandler(
-    entry_points=[CommandHandler("start", start)],
+    entry_points=[
+        CommandHandler("start", start),
+        CommandHandler("continue", continue_command),
+    ],
     states={
         AGENT_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, collect_agent_name)],
         STUDENT_NAME: [
