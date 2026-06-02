@@ -40,3 +40,13 @@ memory:
 # Skill guard (optional safety net for agent-created skills)
 skills:
   guard_agent_created: false
+
+# Messaging platforms — gateway runs all enabled adapters
+platforms:
+  telegram:
+    enabled: true
+  api_server:
+    enabled: true
+    host: ${API_SERVER_HOST:-0.0.0.0}
+    port: ${API_SERVER_PORT:-8642}
+    key: ${API_SERVER_KEY}

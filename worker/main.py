@@ -125,7 +125,7 @@ def load_agent_info(user_id: str) -> dict | None:
 
 def save_agent_info(user_id: str, data: dict) -> None:
     """Persist agent public data (and secrets separately) atomically."""
-    _SECRET_KEYS = {"bot_token", "litellm_key"}
+    _SECRET_KEYS = {"bot_token", "litellm_key", "api_server_key"}
     path = _agent_file(user_id)
     path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -480,6 +480,7 @@ def spin_up_container(
                 detach=True,
                 restart_policy={"Name": "unless-stopped"},
                 environment=env,
+                network="student-pa",
                 volumes={
                     str(student_dir / "hermes-data"): {
                         "bind": "/home/hermes/.hermes",
@@ -614,6 +615,9 @@ async def do_provision_phase2(user_id: str, attempts: int = PROVISION_RETRIES) -
         )
 
         try:
+            api_server_key = info.get("api_server_key")
+            if not api_server_key:
+                raise AgentSetupError("api_server_key missing from agent data")
             await asyncio.get_event_loop().run_in_executor(
                 None,
                 spin_up_container,
@@ -625,6 +629,7 @@ async def do_provision_phase2(user_id: str, attempts: int = PROVISION_RETRIES) -
                 info["student_name"],
                 info["bio"],
                 info["agent_name"],
+                api_server_key,
             )
         except AgentContainerError as e:
             last_error = str(e)
@@ -777,7 +782,7 @@ async def provision_status(telegram_user_id: str, x_secret: str = Header(...)):
     return {
         k: v
         for k, v in info.items()
-        if k not in {"bot_token", "litellm_key"}
+        if k not in {"bot_token", "litellm_key", "api_server_key"}
     }
 
 
