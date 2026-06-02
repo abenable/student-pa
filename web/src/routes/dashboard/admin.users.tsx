@@ -1,16 +1,46 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import { authClient } from '#/lib/auth-client'
-import { ShieldAlert } from 'lucide-react'
+import { ShieldAlert, Loader2 } from 'lucide-react'
 import { isAdmin } from '#/lib/roles'
 
 export const Route = createFileRoute('/dashboard/admin/users')({
   component: UsersDirectory,
 })
 
+interface UserRecord {
+  id: string
+  name: string | null
+  email: string
+  role: string
+  createdAt: string
+  agent: { name: string; status: string } | null
+}
+
 function UsersDirectory() {
   const { data: session } = authClient.useSession()
+  const [users, setUsers] = useState<UserRecord[]>([])
+  const [loading, setLoading] = useState(true)
 
   const isAdminUser = isAdmin(session?.user?.role)
+
+  useEffect(() => {
+    if (!isAdminUser) return
+    async function fetchUsers() {
+      try {
+        const res = await fetch('/api/admin/users')
+        if (res.ok) {
+          const data = await res.json()
+          setUsers(data.users || [])
+        }
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchUsers()
+  }, [isAdminUser])
 
   if (!isAdminUser) {
     return (
@@ -36,7 +66,7 @@ function UsersDirectory() {
         to="/dashboard/admin"
         className="text-sm text-[#0070d1] hover:underline inline-block mb-4"
       >
-        ← Admin Dashboard
+        &larr; Admin Dashboard
       </Link>
       <h1 className="text-[44px] font-light leading-[1.25] tracking-[0.1px] font-['Roboto'] text-foreground">
         Users
@@ -55,14 +85,43 @@ function UsersDirectory() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td
-                  colSpan={5}
-                  className="px-6 py-12 text-center text-foreground/60"
-                >
-                  No users to display
-                </td>
-              </tr>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-foreground/60">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    Loading...
+                  </td>
+                </tr>
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-foreground/60">
+                    No users to display
+                  </td>
+                </tr>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.id} className="border-b border-border/50 last:border-0">
+                    <td className="px-6 py-4 font-medium text-foreground">
+                      {user.name || '—'}
+                    </td>
+                    <td className="px-6 py-4 text-foreground/80">{user.email}</td>
+                    <td className="px-6 py-4 text-foreground/70 capitalize">{user.role}</td>
+                    <td className="px-6 py-4 text-foreground/70">
+                      {user.agent ? (
+                        <div>
+                          <span className="font-medium">{user.agent.name}</span>
+                          <span className="text-xs text-foreground/50 ml-2">({user.agent.status})</span>
+                        </div>
+                      ) : (
+                        <span className="text-foreground/40">None</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-foreground/50 text-xs">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
