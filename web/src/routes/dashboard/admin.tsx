@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { authClient } from '#/lib/auth-client'
-import { ShieldAlert, Users, Bot, Activity, Zap, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { ShieldAlert, Users, Bot, Activity, Zap, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 
 import { isAdmin } from '#/lib/roles'
 
@@ -18,9 +18,17 @@ interface PendingAgent {
   user: { id: string; name: string | null; email: string | null }
 }
 
+interface Stats {
+  totalUsers: number
+  totalAgents: number
+  activeContainers: number
+  servicesRunToday: number
+}
+
 function AdminOverview() {
   const { data: session } = authClient.useSession()
   const [pending, setPending] = useState<PendingAgent[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
@@ -28,15 +36,23 @@ function AdminOverview() {
 
   useEffect(() => {
     if (!isAdminUser) return
-    fetchPending()
+    fetchData()
   }, [isAdminUser])
 
-  async function fetchPending() {
+  async function fetchData() {
     try {
-      const res = await fetch('/api/admin/approvals')
-      if (res.ok) {
-        const data = await res.json()
+      // Pending approvals
+      const approvalsRes = await fetch('/api/admin/approvals')
+      if (approvalsRes.ok) {
+        const data = await approvalsRes.json()
         setPending(data.pending || [])
+      }
+
+      // Stats + all agents
+      const agentsRes = await fetch('/api/admin/agents')
+      if (agentsRes.ok) {
+        const data = await agentsRes.json()
+        setStats(data.stats || null)
       }
     } catch (e) {
       console.error(e)
@@ -55,6 +71,12 @@ function AdminOverview() {
       })
       if (res.ok) {
         setPending((prev) => prev.filter((a) => a.id !== agentId))
+        // Refresh stats after action
+        const agentsRes = await fetch('/api/admin/agents')
+        if (agentsRes.ok) {
+          const data = await agentsRes.json()
+          setStats(data.stats || null)
+        }
       }
     } catch (e) {
       console.error(e)
@@ -93,22 +115,30 @@ function AdminOverview() {
         <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-lg p-6">
           <Users className="h-6 w-6 text-foreground/60 mb-3" />
           <p className="text-sm text-foreground/60">Total Users</p>
-          <p className="text-2xl font-semibold text-foreground mt-1">—</p>
+          <p className="text-2xl font-semibold text-foreground mt-1">
+            {stats ? stats.totalUsers.toLocaleString() : <Loader2 className="h-5 w-5 animate-spin" />}
+          </p>
         </div>
         <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-lg p-6">
           <Bot className="h-6 w-6 text-foreground/60 mb-3" />
           <p className="text-sm text-foreground/60">Total Agents</p>
-          <p className="text-2xl font-semibold text-foreground mt-1">—</p>
+          <p className="text-2xl font-semibold text-foreground mt-1">
+            {stats ? stats.totalAgents.toLocaleString() : <Loader2 className="h-5 w-5 animate-spin" />}
+          </p>
         </div>
         <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-lg p-6">
           <Activity className="h-6 w-6 text-foreground/60 mb-3" />
           <p className="text-sm text-foreground/60">Active Containers</p>
-          <p className="text-2xl font-semibold text-foreground mt-1">—</p>
+          <p className="text-2xl font-semibold text-foreground mt-1">
+            {stats ? stats.activeContainers.toLocaleString() : <Loader2 className="h-5 w-5 animate-spin" />}
+          </p>
         </div>
         <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-lg p-6">
           <Zap className="h-6 w-6 text-foreground/60 mb-3" />
           <p className="text-sm text-foreground/60">Services Run Today</p>
-          <p className="text-2xl font-semibold text-foreground mt-1">—</p>
+          <p className="text-2xl font-semibold text-foreground mt-1">
+            {stats ? stats.servicesRunToday.toLocaleString() : <Loader2 className="h-5 w-5 animate-spin" />}
+          </p>
         </div>
       </div>
 
@@ -126,7 +156,7 @@ function AdminOverview() {
 
         {loading ? (
           <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-lg p-8 text-center">
-            <div className="h-8 w-8 border-4 border-neutral-200 border-t-[#0070d1] rounded-full animate-spin mx-auto" />
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-[#0070d1]" />
           </div>
         ) : pending.length === 0 ? (
           <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-lg p-8 text-center">
@@ -196,7 +226,7 @@ function AdminOverview() {
           <Bot className="h-8 w-8 text-[#0070d1]" />
           <div>
             <p className="text-lg font-medium text-foreground">Manage Agents</p>
-            <p className="text-sm text-foreground/60">View and manage all agents</p>
+            <p className="text-sm text-foreground/60">View and manage all agents and Telegram bots</p>
           </div>
         </Link>
         <Link

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { authClient } from '#/lib/auth-client'
-import { ShieldAlert, CheckCircle, XCircle, Clock, AlertTriangle, Loader2 } from 'lucide-react'
+import { ShieldAlert, CheckCircle, XCircle, Clock, AlertTriangle, Loader2, Bot, MessageCircle } from 'lucide-react'
 
 import { isAdmin } from '#/lib/roles'
 
@@ -13,11 +13,17 @@ interface Agent {
   id: string
   name: string
   studentName: string
+  bio: string
   status: string
   containerName: string
   containerRunning: boolean
+  botUsername: string | null
+  hasBotToken: boolean
+  hasLiteLLMKey: boolean
+  approvedAt: string | null
   createdAt: string
-  user: { name: string | null; email: string | null }
+  updatedAt: string
+  user: { id: string; name: string | null; email: string | null }
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -43,6 +49,13 @@ function StatusBadge({ status }: { status: string }) {
           Provisioning
         </span>
       )
+    case 'STOPPED':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-neutral-500/10 text-neutral-700 dark:text-neutral-300 text-xs font-bold">
+          <XCircle className="h-3 w-3" />
+          Stopped
+        </span>
+      )
     case 'ERROR':
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/10 text-red-700 dark:text-red-300 text-xs font-bold">
@@ -60,6 +73,40 @@ function StatusBadge({ status }: { status: string }) {
   }
 }
 
+function ContainerBadge({ running }: { running: boolean }) {
+  if (running) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-700 dark:text-green-300 text-xs font-bold">
+        <CheckCircle className="h-3 w-3" />
+        Up
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/10 text-red-700 dark:text-red-300 text-xs font-bold">
+      <XCircle className="h-3 w-3" />
+      Down
+    </span>
+  )
+}
+
+function BotBadge({ botUsername, hasToken }: { botUsername: string | null; hasToken: boolean }) {
+  if (!botUsername) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-neutral-500/10 text-neutral-700 dark:text-neutral-300 text-xs font-bold">
+        <Bot className="h-3 w-3" />
+        Not created
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 text-xs font-bold" title={hasToken ? 'Bot token set' : 'Missing bot token'}>
+      <MessageCircle className="h-3 w-3" />
+      @{botUsername}
+    </span>
+  )
+}
+
 function AgentsDirectory() {
   const { data: session } = authClient.useSession()
   const [agents, setAgents] = useState<Agent[]>([])
@@ -71,10 +118,10 @@ function AgentsDirectory() {
     if (!isAdminUser) return
     async function fetchAgents() {
       try {
-        const res = await fetch('/api/admin/approvals')
+        const res = await fetch('/api/admin/agents')
         if (res.ok) {
           const data = await res.json()
-          setAgents(data.pending || [])
+          setAgents(data.agents || [])
         }
       } catch (e) {
         console.error(e)
@@ -104,16 +151,17 @@ function AgentsDirectory() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12">
+    <div className="max-w-6xl mx-auto px-6 py-12">
       <Link
         to="/dashboard/admin"
         className="text-sm text-[#0070d1] hover:underline inline-block mb-4"
       >
-        ← Admin Dashboard
+        &larr; Admin Dashboard
       </Link>
       <h1 className="text-[44px] font-light leading-[1.25] tracking-[0.1px] font-['Roboto'] text-foreground">
-        Agents
+        Agents & Bots
       </h1>
+      <p className="text-lg text-foreground/60 mt-2">View all provisioned agents and their Telegram bots.</p>
 
       <div className="bg-[#f5f7fa] dark:bg-[#181818] rounded-lg overflow-hidden mt-8">
         <div className="overflow-x-auto">
@@ -123,6 +171,7 @@ function AgentsDirectory() {
                 <th className="px-6 py-3 font-medium text-foreground/60">Agent Name</th>
                 <th className="px-6 py-3 font-medium text-foreground/60">Student</th>
                 <th className="px-6 py-3 font-medium text-foreground/60">Status</th>
+                <th className="px-6 py-3 font-medium text-foreground/60">Telegram Bot</th>
                 <th className="px-6 py-3 font-medium text-foreground/60">Container</th>
                 <th className="px-6 py-3 font-medium text-foreground/60">Created</th>
               </tr>
@@ -130,21 +179,24 @@ function AgentsDirectory() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-foreground/60">
+                  <td colSpan={6} className="px-6 py-12 text-center text-foreground/60">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
                     Loading...
                   </td>
                 </tr>
               ) : agents.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-foreground/60">
+                  <td colSpan={6} className="px-6 py-12 text-center text-foreground/60">
                     No agents to display
                   </td>
                 </tr>
               ) : (
                 agents.map((agent) => (
                   <tr key={agent.id} className="border-b border-border/50 last:border-0">
-                    <td className="px-6 py-4 font-medium text-foreground">{agent.name}</td>
+                    <td className="px-6 py-4 font-medium text-foreground">
+                      <div>{agent.name}</div>
+                      <div className="text-xs text-foreground/50 mt-0.5">{agent.bio}</div>
+                    </td>
                     <td className="px-6 py-4 text-foreground/80">
                       <div>{agent.studentName}</div>
                       <div className="text-xs text-foreground/50">{agent.user.email}</div>
@@ -152,7 +204,18 @@ function AgentsDirectory() {
                     <td className="px-6 py-4">
                       <StatusBadge status={agent.status} />
                     </td>
-                    <td className="px-6 py-4 text-foreground/60 text-xs font-mono">{agent.containerName}</td>
+                    <td className="px-6 py-4">
+                      <BotBadge botUsername={agent.botUsername} hasToken={agent.hasBotToken} />
+                      {!agent.hasLiteLLMKey && agent.botUsername && (
+                        <div className="text-xs text-amber-600 mt-1">No LiteLLM key</div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <ContainerBadge running={agent.containerRunning} />
+                        <span className="text-xs text-foreground/50 font-mono">{agent.containerName}</span>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-foreground/50 text-xs">
                       {new Date(agent.createdAt).toLocaleDateString()}
                     </td>
