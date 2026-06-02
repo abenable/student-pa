@@ -72,7 +72,14 @@ export function useChat({ api }: UseChatOptions): UseChatReturn {
 
         if (!res.ok) {
           const errText = await res.text()
-          throw new Error(errText || `HTTP ${res.status}`)
+          let errMsg = errText || `HTTP ${res.status}`
+          try {
+            const parsed = JSON.parse(errText)
+            if (parsed.message) errMsg = parsed.message
+          } catch {
+            // keep raw text
+          }
+          throw new Error(errMsg)
         }
 
         if (!res.body) {
