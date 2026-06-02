@@ -4,7 +4,7 @@
 
 Student-PA gives every student their own personal AI agent — accessible via Telegram — that helps with scheduling, academic writing, research, job applications, and more. Each student gets an isolated, containerized [Hermes Agent](https://hermes-agent.nousresearch.com/) instance with pre-built workflows and secure API-key management.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Docker](https://img.shields.io/badge/built%20with-Docker-blue)](https://www.docker.com/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 [![Node](https://img.shields.io/badge/node-24%2B-green)](https://nodejs.org/)
@@ -168,9 +168,9 @@ If you discover a security vulnerability, please **do not** open a public issue.
 
 ## License
 
-Student-PA is licensed under the [MIT License](LICENSE).
+Student-PA is licensed under the [GNU Affero General Public License v3.0 (AGPLv3)](LICENSE).
 
-You are free to use, modify, distribute, and even build commercial services on top of it, provided the original copyright notice and license terms are included. See the [LICENSE](LICENSE) file for full details.
+This means that if you run a modified version of this software on a network server, you must make the source code available to the users of that server. See the [LICENSE](LICENSE) file for full details.
 
 ---
 
