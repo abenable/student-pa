@@ -4,9 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "agent/Dockerfile"
-      - "agent/services/**"
-      - "agent/.dockerignore"
+      - "agent/**"
       - ".github/workflows/docker-build.yml"
   workflow_dispatch:
 

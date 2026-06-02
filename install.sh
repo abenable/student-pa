@@ -125,6 +125,10 @@ prompt_or_env "PROVISIONER_SECRET" "Provisioner shared secret (any random string
 prompt_or_env "TELEGRAM_API_ID" "Telegram API ID (from my.telegram.org/apps)" "false"
 prompt_or_env "TELEGRAM_API_HASH" "Telegram API Hash (from my.telegram.org/apps)" "true"
 
+if [ "${USE_LOCAL_AGENT_IMAGE:-false}" = "true" ]; then
+    IMAGE_NAME="student-pa-agent:latest"
+fi
+
 # ─── Setup Directory & Config ─────────────────────────────────────
 
 echo ""
@@ -145,7 +149,7 @@ DEFAULT_MODEL=${DEFAULT_MODEL:-Mythos}
 SIGNUP_BOT_TOKEN=${SIGNUP_BOT_TOKEN:-}
 PROVISIONER_SECRET=${PROVISIONER_SECRET:-}
 AGENT_IMAGE=${IMAGE_NAME}
-AGENTS_BASE_DIR=./agents
+AGENTS_BASE_DIR=/agents
 
 # Telethon (BotFather automation)
 TELEGRAM_API_ID=${TELEGRAM_API_ID:-}
@@ -168,11 +172,11 @@ if [ -z "${SKIP_TELETHON_AUTH:-}" ]; then
     echo "   The session is saved to a Docker volume and reused on restarts."
     echo "   Skip this step with: export SKIP_TELETHON_AUTH=1"
     echo ""
-echo "   Run after containers are up:"
-echo "     $COMPOSE_CMD -f worker/docker-compose.yml run --rm backend python -c \""
-echo "       from telethon.sync import TelegramClient; \""
-echo "       c = TelegramClient('/data/botfather_session', $TELEGRAM_API_ID, '$TELEGRAM_API_HASH'); \""
-echo "       c.start(); print('Session saved')\"\"
+    echo "   Run after containers are up:"
+    echo "     $COMPOSE_CMD run --rm worker python -c \""
+    echo "       from telethon.sync import TelegramClient; \""
+    echo "       c = TelegramClient('/data/botfather_session', $TELEGRAM_API_ID, '$TELEGRAM_API_HASH'); \""
+    echo "       c.start(); print('Session saved')\""
 fi
 
 # ─── Pull & Run ───────────────────────────────────────────────────
@@ -180,9 +184,24 @@ fi
 echo ""
 echo -e "${BLUE}Starting Student-PA services...${NC}"
 
+if [ "$IMAGE_NAME" = "student-pa-agent:latest" ]; then
+    echo -e "${BLUE}  → Building local agent image...${NC}"
+    docker build -t "$IMAGE_NAME" ./agent
+else
+    echo -e "${BLUE}  → Checking agent image access...${NC}"
+    if ! docker manifest inspect "$IMAGE_NAME" >/dev/null 2>&1; then
+        echo -e "${YELLOW}⚠ Cannot access $IMAGE_NAME from Docker.${NC}"
+        echo "   If the GHCR package is private, log in first:"
+        echo "     echo '<PAT_WITH_READ_PACKAGES>' | docker login ghcr.io -u '<github-user>' --password-stdin"
+        echo "   Or build locally instead:"
+        echo "     curl -fsSL https://raw.githubusercontent.com/abenable/student-pa/main/install.sh | USE_LOCAL_AGENT_IMAGE=true bash"
+        exit 1
+    fi
+fi
+
 # Start backend (signup bot + provisioner)
 echo -e "${BLUE}  → Starting backend...${NC}"
-$COMPOSE_CMD -f worker/docker-compose.yml up -d --build
+$COMPOSE_CMD up -d --build worker
 
 # Optionally start template agent for single-student mode
 if [ "${START_TEMPLATE_AGENT:-false}" = "true" ]; then
@@ -199,7 +218,7 @@ echo "  Directory:  $INSTALL_DIR"
 echo "  Agents dir: $INSTALL_DIR/agents/"
 echo ""
 echo "Services:"
-echo "  Backend:     $COMPOSE_CMD -f worker/docker-compose.yml logs -f"
+echo "  Backend:     $COMPOSE_CMD logs -f worker"
 if [ "${START_TEMPLATE_AGENT:-false}" = "true" ]; then
     echo "  Template:    $COMPOSE_CMD -f agent/docker-compose.yml logs -f"
 fi

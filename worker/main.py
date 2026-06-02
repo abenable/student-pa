@@ -49,9 +49,11 @@ PROVISIONER_SECRET = os.environ["PROVISIONER_SECRET"]
 LITELLM_OPENAI_BASE = "https://litellm.byte10x.dev/v1"
 LITELLM_ADMIN_BASE = LITELLM_OPENAI_BASE[:-3]  # strip /v1 for admin API
 LITELLM_ADMIN_KEY = os.environ["LITELLM_ADMIN_KEY"]
-AGENT_IMAGE = os.environ.get("AGENT_IMAGE", "ghcr.io/abenable/student-pa:latest")
+AGENT_IMAGE = os.environ.get("AGENT_IMAGE", "student-pa-agent:latest")
 AGENTS_BASE_DIR = Path(os.environ.get("AGENTS_BASE_DIR", "/agents"))
 DEFAULT_MODEL = os.environ.get("DEFAULT_MODEL", "Mythos")
+PROVISION_RETRIES = int(os.environ.get("PROVISION_RETRIES", "3"))
+PROVISION_RETRY_DELAY_SECONDS = int(os.environ.get("PROVISION_RETRY_DELAY_SECONDS", "10"))
 
 TG_API_ID = int(os.environ["TELEGRAM_API_ID"])
 TG_API_HASH = os.environ["TELEGRAM_API_HASH"]
@@ -73,6 +75,16 @@ class DuplicateAgentError(Exception):
 
 class BotFatherError(Exception):
     """Raised when BotFather automation fails."""
+    pass
+
+
+class AgentContainerError(Exception):
+    """Raised when the per-student agent container cannot be started."""
+    pass
+
+
+class AgentSetupError(Exception):
+    """Raised when an agent exists but is not fully ready yet."""
     pass
 
 
@@ -135,6 +147,54 @@ def delete_agent_info(user_id: str) -> None:
             p.unlink()
 
 
+def update_agent_info(user_id: str, **updates) -> dict:
+    info = load_agent_info(user_id) or {}
+    info.update(updates)
+    info["updated_at"] = int(time.time())
+    save_agent_info(user_id, info)
+    return info
+
+
+def refresh_agent_runtime_status(info: dict) -> dict:
+    user_id = info.get("telegram_user_id")
+    container_name = info.get("container_name")
+    if not user_id or not container_name:
+        return info
+
+    try:
+        container = docker_client.containers.get(container_name)
+        container.reload()
+    except docker.errors.NotFound:
+        if info.get("container_running"):
+            return update_agent_info(
+                user_id,
+                container_running=False,
+                provisioning_status="container_pending",
+                last_error="Agent container is missing from Docker.",
+            )
+        return info
+    except Exception:
+        logger.exception("Failed to refresh container status for %s", container_name)
+        return info
+
+    if container.status == "running":
+        if not info.get("container_running"):
+            return update_agent_info(
+                user_id,
+                container_running=True,
+                provisioning_status="ready",
+                last_error=None,
+            )
+        return info
+
+    return update_agent_info(
+        user_id,
+        container_running=False,
+        provisioning_status="container_pending",
+        last_error=f"Agent container status is {container.status}.",
+    )
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 
@@ -154,25 +214,73 @@ def _redact_bot_tokens(text: str) -> str:
 
 
 async def create_litellm_key(student_id: str, agent_name: str, key_name: str) -> str:
+    last_error = None
     async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            f"{LITELLM_ADMIN_BASE}/key/generate",
-            headers={"Authorization": f"Bearer {LITELLM_ADMIN_KEY}"},
-            json={
-                "key_name": key_name,
-                "models": ["Mythos"],
-                "metadata": {"student_id": student_id, "agent_name": agent_name},
-            },
-            timeout=30,
+        for attempt in range(1, PROVISION_RETRIES + 1):
+            try:
+                resp = await client.post(
+                    f"{LITELLM_ADMIN_BASE}/key/generate",
+                    headers={"Authorization": f"Bearer {LITELLM_ADMIN_KEY}"},
+                    json={
+                        "key_name": key_name or student_id,
+                        "models": ["Mythos"],
+                        "metadata": {"student_id": student_id, "agent_name": agent_name},
+                    },
+                    timeout=30,
+                )
+                if resp.status_code != 200:
+                    logger.error(
+                        "LiteLLM /key/generate returned %s: %s",
+                        resp.status_code,
+                        resp.text[:500],
+                    )
+                resp.raise_for_status()
+                return resp.json()["key"]
+            except Exception as e:
+                last_error = e
+                logger.warning(
+                    "LiteLLM key generation attempt %s/%s failed for user %s: %s",
+                    attempt,
+                    PROVISION_RETRIES,
+                    student_id,
+                    e,
+                )
+                if attempt < PROVISION_RETRIES:
+                    await asyncio.sleep(PROVISION_RETRY_DELAY_SECONDS)
+    raise AgentSetupError(f"Could not generate LiteLLM API key: {last_error}")
+
+
+async def ensure_litellm_key(user_id: str, info: dict) -> dict:
+    if info.get("litellm_key"):
+        return info
+
+    update_agent_info(
+        user_id,
+        provisioning_status="creating_key",
+        last_error=None,
+    )
+    try:
+        litellm_key = await create_litellm_key(
+            user_id,
+            info["agent_name"],
+            info.get("telegram_username", ""),
         )
-        if resp.status_code != 200:
-            logger.error(
-                "LiteLLM /key/generate returned %s: %s",
-                resp.status_code,
-                resp.text,
-            )
-        resp.raise_for_status()
-        return resp.json()["key"]
+    except AgentSetupError as e:
+        update_agent_info(
+            user_id,
+            provisioning_status="key_pending",
+            last_error=str(e),
+        )
+        raise
+
+    return update_agent_info(
+        user_id,
+        litellm_key=litellm_key,
+        provisioning_status="bot_created",
+        last_error=None,
+    )
+    resp.raise_for_status()
+    return resp.json()["key"]
 
 
 async def _wait_for_botfather_reply(
@@ -296,6 +404,23 @@ def spin_up_container(
     (student_dir / "hermes-data").mkdir(exist_ok=True)
     (student_dir / "student-data").mkdir(exist_ok=True)
 
+    try:
+        existing = docker_client.containers.get(container_name)
+        existing.reload()
+        if existing.status == "running":
+            logger.info("Reusing running container %s", container_name)
+            container = existing
+        else:
+            logger.info(
+                "Removing stale container %s with status=%s",
+                container_name,
+                existing.status,
+            )
+            existing.remove(force=True)
+            container = None
+    except docker.errors.NotFound:
+        container = None
+
     env = {
         "LITELLM_API_BASE": LITELLM_OPENAI_BASE,
         "LITELLM_API_KEY": litellm_key,
@@ -313,27 +438,35 @@ def spin_up_container(
         "AGENT_NAME": agent_name,
     }
 
-    container = docker_client.containers.run(
-        AGENT_IMAGE,
-        name=container_name,
-        detach=True,
-        restart_policy={"Name": "unless-stopped"},
-        environment=env,
-        volumes={
-            str(student_dir / "hermes-data"): {
-                "bind": "/home/hermes/.hermes",
-                "mode": "rw",
-            },
-            str(student_dir / "student-data"): {
-                "bind": "/home/hermes/student-data",
-                "mode": "rw",
-            },
-        },
-        extra_hosts={"host.docker.internal": "host-gateway"},
-        security_opt=["no-new-privileges:true"],
-        cap_drop=["ALL"],
-        cap_add=["DAC_OVERRIDE", "CHOWN", "FOWNER"],
-    )
+    if container is None:
+        try:
+            container = docker_client.containers.run(
+                AGENT_IMAGE,
+                name=container_name,
+                detach=True,
+                restart_policy={"Name": "unless-stopped"},
+                environment=env,
+                volumes={
+                    str(student_dir / "hermes-data"): {
+                        "bind": "/home/hermes/.hermes",
+                        "mode": "rw",
+                    },
+                    str(student_dir / "student-data"): {
+                        "bind": "/home/hermes/student-data",
+                        "mode": "rw",
+                    },
+                },
+                extra_hosts={"host.docker.internal": "host-gateway"},
+                security_opt=["no-new-privileges:true"],
+                cap_drop=["ALL"],
+                cap_add=["DAC_OVERRIDE", "CHOWN", "FOWNER"],
+            )
+        except (docker.errors.ImageNotFound, docker.errors.APIError) as e:
+            raise AgentContainerError(
+                f"Docker cannot access agent image {AGENT_IMAGE!r}. "
+                "Build it locally on the VM host, make the GHCR package public, "
+                "or run docker login ghcr.io with a token that has read:packages."
+            ) from e
 
     # Wait until container is running (up to 30s)
     deadline = time.time() + 30
@@ -343,14 +476,26 @@ def spin_up_container(
             break
         time.sleep(1)
     else:
-        raise RuntimeError(f"Container {container_name} did not reach running state in 30s")
+        raise AgentContainerError(
+            f"Container {container_name} did not reach running state in 30s."
+        )
 
     result = container.exec_run("hermes setup --non-interactive", user="hermes")
     logger.info(
         "hermes setup exit=%d: %s", result.exit_code, result.output.decode()[:500]
     )
+    if result.exit_code != 0:
+        raise AgentContainerError(
+            f"hermes setup failed with exit code {result.exit_code}: "
+            f"{result.output.decode(errors='replace')[:300]}"
+        )
 
-    container.exec_run("hermes gateway run", detach=True, user="hermes")
+    result = container.exec_run("hermes gateway run", detach=True, user="hermes")
+    if result.exit_code not in (0, None):
+        raise AgentContainerError(
+            f"Telegram gateway failed to start with exit code {result.exit_code}: "
+            f"{result.output.decode(errors='replace')[:300]}"
+        )
     logger.info("Telegram gateway started for container %s", container_name)
 
 
@@ -376,58 +521,114 @@ async def do_provision_phase1(req: ProvisionRequest) -> dict:
     # 1. Create Telegram bot via BotFather
     bot_token, bot_username = await create_telegram_bot(req.agent_name, suffix)
 
-    # 2. Generate LiteLLM key restricted to Mythos
-    try:
-        litellm_key = await create_litellm_key(req.telegram_user_id, req.agent_name, req.telegram_username)
-    except Exception:
-        logger.exception("LiteLLM key generation failed")
-        raise RuntimeError("Could not generate LiteLLM API key")
-
-    # 3. Persist agent info (Docker not provisioned yet)
+    # 2. Persist the BotFather result immediately. If key/container setup fails,
+    # /retry can continue without creating another Telegram bot.
     agent_data = {
         "telegram_user_id": req.telegram_user_id,
+        "telegram_username": req.telegram_username,
         "agent_name": req.agent_name,
         "student_name": req.student_name,
         "bio": req.bio,
         "bot_username": bot_username,
         "bot_token": bot_token,
-        "litellm_key": litellm_key,
         "container_name": container_name,
         "container_running": False,
+        "provisioning_status": "bot_created",
+        "phase2_attempts": 0,
+        "last_error": None,
+        "created_at": int(time.time()),
+        "updated_at": int(time.time()),
     }
     save_agent_info(req.telegram_user_id, agent_data)
+
+    # 3. Generate LiteLLM key restricted to Mythos.
+    agent_data = await ensure_litellm_key(req.telegram_user_id, agent_data)
 
     logger.info("Phase 1 complete: @%s for user %s", bot_username, req.telegram_user_id)
     return agent_data
 
 
-async def do_provision_phase2(user_id: str) -> dict:
+async def do_provision_phase2(user_id: str, attempts: int = PROVISION_RETRIES) -> dict:
     """Spin up the Docker container for an existing agent."""
     info = load_agent_info(user_id)
     if not info:
         raise RuntimeError("No agent found. Run /start to create one.")
     if info.get("container_running"):
-        raise DuplicateAgentError("Your agent container is already running.")
+        info["provisioning_status"] = "ready"
+        save_agent_info(user_id, info)
+        return info
+    info = await ensure_litellm_key(user_id, info)
 
     student_dir = AGENTS_BASE_DIR / user_id
     container_name = info["container_name"]
+    last_error = None
 
-    await asyncio.get_event_loop().run_in_executor(
-        None,
-        spin_up_container,
+    for attempt in range(1, max(attempts, 1) + 1):
+        info = update_agent_info(
+            user_id,
+            provisioning_status="starting_container",
+            phase2_attempts=int(info.get("phase2_attempts", 0)) + 1,
+            last_error=None,
+        )
+        logger.info(
+            "Phase 2 attempt %s/%s for user %s container=%s image=%s",
+            attempt,
+            attempts,
+            user_id,
+            container_name,
+            AGENT_IMAGE,
+        )
+
+        try:
+            await asyncio.get_event_loop().run_in_executor(
+                None,
+                spin_up_container,
+                user_id,
+                container_name,
+                student_dir,
+                info["litellm_key"],
+                info["bot_token"],
+                info["student_name"],
+                info["bio"],
+                info["agent_name"],
+            )
+        except AgentContainerError as e:
+            last_error = str(e)
+            logger.warning(
+                "Phase 2 attempt %s/%s failed for user %s: %s",
+                attempt,
+                attempts,
+                user_id,
+                last_error,
+            )
+            if attempt < attempts:
+                update_agent_info(
+                    user_id,
+                    provisioning_status="container_retrying",
+                    last_error=last_error,
+                    next_retry_at=int(time.time() + PROVISION_RETRY_DELAY_SECONDS),
+                )
+                await asyncio.sleep(PROVISION_RETRY_DELAY_SECONDS)
+                continue
+            break
+
+        info = update_agent_info(
+            user_id,
+            provisioning_status="ready",
+            container_running=True,
+            last_error=None,
+            next_retry_at=None,
+        )
+        return info
+
+    update_agent_info(
         user_id,
-        container_name,
-        student_dir,
-        info["litellm_key"],
-        info["bot_token"],
-        info["student_name"],
-        info["bio"],
-        info["agent_name"],
+        provisioning_status="container_pending",
+        container_running=False,
+        last_error=last_error or "Container startup failed.",
+        next_retry_at=None,
     )
-
-    info["container_running"] = True
-    save_agent_info(user_id, info)
-    return info
+    raise AgentContainerError(last_error or "Container startup failed.")
 
 
 # ── FastAPI ───────────────────────────────────────────────────────────────────
@@ -474,8 +675,27 @@ async def provision_phase2(req: Phase2Request, x_secret: str = Header(...)):
         return await do_provision_phase2(req.telegram_user_id)
     except DuplicateAgentError as e:
         raise HTTPException(status_code=409, detail=str(e))
+    except AgentContainerError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except AgentSetupError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except RuntimeError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@api.get("/provision/status/{telegram_user_id}")
+async def provision_status(telegram_user_id: str, x_secret: str = Header(...)):
+    if x_secret != PROVISIONER_SECRET:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    info = load_agent_info(telegram_user_id)
+    if not info:
+        raise HTTPException(status_code=404, detail="No agent found.")
+    info = refresh_agent_runtime_status(info)
+    return {
+        k: v
+        for k, v in info.items()
+        if k not in {"bot_token", "litellm_key"}
+    }
 
 
 @api.get("/health")
@@ -487,6 +707,8 @@ def health():
 
 BOT_COMMANDS = [
     BotCommand("start", "Set up your personal AI agent"),
+    BotCommand("status", "Check your agent setup status"),
+    BotCommand("retry", "Retry a pending agent setup"),
     BotCommand("cancel", "Cancel the current operation"),
     BotCommand("support", "Contact support"),
     BotCommand("rename", "Rename your agent"),
@@ -507,7 +729,59 @@ BIO_OPTIONS = [
 ]
 
 
+def _agent_status_message(info: dict) -> str:
+    status = info.get("provisioning_status") or (
+        "ready" if info.get("container_running") else "container_pending"
+    )
+    bot_username = info.get("bot_username", "unknown")
+    agent_name = info.get("agent_name", "your agent")
+    attempts = info.get("phase2_attempts", 0)
+    last_error = info.get("last_error")
+
+    if status == "ready":
+        return (
+            f"✅ Your agent is ready.\n\n"
+            f"Agent: {agent_name}\n"
+            f"Bot: @{bot_username}\n\n"
+            f"DM @{bot_username} to chat with your agent."
+        )
+
+    if status in {
+        "bot_created",
+        "creating_key",
+        "key_pending",
+        "starting_container",
+        "container_retrying",
+    }:
+        return (
+            f"⏳ Your agent bot was created and setup is still running.\n\n"
+            f"Agent: {agent_name}\n"
+            f"Bot: @{bot_username}\n"
+            f"Status: {status.replace('_', ' ')}\n"
+            f"Container attempts: {attempts}\n\n"
+            "Send /status to check again or /retry to continue setup."
+        )
+
+    message = (
+        f"⚠️ Your agent bot was created, but the container is still pending.\n\n"
+        f"Agent: {agent_name}\n"
+        f"Bot: @{bot_username}\n"
+        f"Status: {status.replace('_', ' ')}\n"
+        f"Container attempts: {attempts}\n\n"
+        "Send /retry after the server/image issue is fixed."
+    )
+    if last_error:
+        message += f"\n\nLast error: {last_error[:600]}"
+    return message
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    existing = load_agent_info(str(update.effective_user.id))
+    if existing:
+        existing = refresh_agent_runtime_status(existing)
+        await update.message.reply_text(_agent_status_message(existing))
+        return ConversationHandler.END
+
     await update.message.reply_text(
         "👋 Welcome to Student-PA!\n\n"
         "I'll set up your personal AI agent in about 30 seconds.\n\n"
@@ -598,14 +872,13 @@ async def _finish_onboarding(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     try:
         data = await do_provision_phase1(req)
+        await _reply_text(update, context,
+            f"✅ Bot created: @{data['bot_username']}\n\n"
+            "Starting your agent container now. This can take a moment."
+        )
         # Phase 2: spin up the container
         data = await do_provision_phase2(req.telegram_user_id)
-        await _reply_text(update, context,
-            f"✅ Your agent is ready!\n\n"
-            f"🤖 Bot: @{data['bot_username']}\n\n"
-            f"👉 DM @{data['bot_username']} to chat with your agent.",
-            parse_mode="Markdown",
-        )
+        await _reply_text(update, context, _agent_status_message(data))
     except DuplicateAgentError as e:
         await _reply_text(update, context, f"❌ {e}")
     except BotFatherError as e:
@@ -614,6 +887,20 @@ async def _finish_onboarding(update: Update, context: ContextTypes.DEFAULT_TYPE)
             "❌ Could not create the bot via BotFather. "
             "The username might be taken or you're rate-limited. Please try again."
         )
+    except AgentContainerError as e:
+        logger.exception("Agent container startup failed")
+        info = load_agent_info(req.telegram_user_id)
+        if info:
+            await _reply_text(update, context, _agent_status_message(info))
+        else:
+            await _reply_text(update, context, f"❌ {e}")
+    except AgentSetupError as e:
+        logger.exception("Agent setup failed")
+        info = load_agent_info(req.telegram_user_id)
+        if info:
+            await _reply_text(update, context, _agent_status_message(info))
+        else:
+            await _reply_text(update, context, f"❌ {e}")
     except Exception:
         logger.exception("Unexpected error during provisioning")
         await _reply_text(update, context,
@@ -651,6 +938,48 @@ async def support_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         "• Want a new agent — use /delete then /start\n",
         parse_mode="Markdown",
     )
+
+
+async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    info = load_agent_info(str(update.effective_user.id))
+    if not info:
+        await update.message.reply_text(
+            "You do not have an agent yet. Send /start to create one."
+        )
+        return
+    info = refresh_agent_runtime_status(info)
+    await update.message.reply_text(_agent_status_message(info))
+
+
+async def retry_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = str(update.effective_user.id)
+    info = load_agent_info(user_id)
+    if not info:
+        await update.message.reply_text(
+            "You do not have an agent yet. Send /start to create one."
+        )
+        return
+    info = refresh_agent_runtime_status(info)
+    if info.get("container_running"):
+        await update.message.reply_text(_agent_status_message(info))
+        return
+
+    await update.message.reply_text(
+        f"Retrying setup for @{info['bot_username']}.\n"
+        "I will update you when the container is ready or still pending."
+    )
+    try:
+        info = await do_provision_phase2(user_id)
+        await update.message.reply_text(_agent_status_message(info))
+    except (AgentContainerError, AgentSetupError):
+        logger.exception("Manual retry failed for user %s", user_id)
+        info = load_agent_info(user_id)
+        await update.message.reply_text(_agent_status_message(info))
+    except Exception:
+        logger.exception("Unexpected manual retry failure for user %s", user_id)
+        await update.message.reply_text(
+            "Retry failed unexpectedly. Send /status to see the current saved state."
+        )
 
 
 async def rename_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -717,8 +1046,8 @@ async def delete_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await query.edit_message_text("Session expired. Send /delete to try again.")
         return ConversationHandler.END
 
-    # Stop and remove container if running
-    if info.get("container_running"):
+    # Stop and remove any existing container for this agent, including stale pending ones.
+    if info.get("container_name"):
         try:
             container = docker_client.containers.get(info["container_name"])
             container.stop(timeout=10)
@@ -780,5 +1109,7 @@ telegram_app.add_handler(MessageHandler(filters.ALL, log_incoming_update), group
 telegram_app.add_handler(onboarding_conv)
 telegram_app.add_handler(rename_conv)
 telegram_app.add_handler(delete_conv)
+telegram_app.add_handler(CommandHandler("status", status_command))
+telegram_app.add_handler(CommandHandler("retry", retry_command))
 telegram_app.add_handler(CommandHandler("support", support_command))
 telegram_app.add_error_handler(telegram_error_handler)
