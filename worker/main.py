@@ -391,7 +391,9 @@ async def lifespan(app: FastAPI):
     await telegram_app.initialize()
     await telegram_app.start()
     await telegram_app.bot.set_my_commands(BOT_COMMANDS)
-    await telegram_app.updater.start_polling(allowed_updates=Update.ALL_TYPES)
+    await telegram_app.updater.start_polling(
+        allowed_updates=Update.ALL_TYPES, drop_pending_updates=True
+    )
     logger.info("Telegram signup bot started polling")
     yield
     await telegram_app.updater.stop()
@@ -676,6 +678,7 @@ onboarding_conv = ConversationHandler(
         ],
     },
     fallbacks=[CommandHandler("cancel", cancel)],
+    per_message=True,
 )
 
 # Rename conversation
@@ -685,6 +688,7 @@ rename_conv = ConversationHandler(
         RENAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, rename_finish)],
     },
     fallbacks=[CommandHandler("cancel", cancel)],
+    per_message=True,
 )
 
 # Delete conversation
@@ -694,6 +698,7 @@ delete_conv = ConversationHandler(
         DELETE: [CallbackQueryHandler(delete_callback)],
     },
     fallbacks=[CommandHandler("cancel", cancel)],
+    per_message=True,
 )
 
 telegram_app.add_handler(onboarding_conv)

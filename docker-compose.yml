@@ -24,8 +24,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./agents:/agents
-      - worker-data:/data
-      - ./worker/botfather_session.session:/data/botfather_session.session
+      - ./worker/sessions:/data
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
@@ -35,9 +34,6 @@ services:
       retries: 3
     networks:
       - student-pa
-
-volumes:
-  worker-data:
 
 networks:
   student-pa:
