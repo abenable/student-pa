@@ -149,6 +149,10 @@ def _random_suffix(n: int = 6) -> str:
     )
 
 
+def _redact_bot_tokens(text: str) -> str:
+    return re.sub(r"\d+:[A-Za-z0-9_-]{35,}", "<telegram-bot-token>", text)
+
+
 async def create_litellm_key(student_id: str, agent_name: str, key_name: str) -> str:
     async with httpx.AsyncClient() as client:
         resp = await client.post(
@@ -172,17 +176,45 @@ async def create_litellm_key(student_id: str, agent_name: str, key_name: str) ->
 
 
 async def _wait_for_botfather_reply(
-    client: TelegramClient, bf_entity, after_id: int, timeout: int = 20
-) -> str:
-    """Poll BotFather for a new message after `after_id`, returning its text."""
+    client: TelegramClient,
+    bf_entity,
+    after_id: int,
+    timeout: int = 20,
+    expected: str | None = None,
+) -> tuple[str, int]:
+    """Poll BotFather for the next matching incoming message after `after_id`."""
     deadline = asyncio.get_event_loop().time() + timeout
+    newest_seen_id = after_id
     while asyncio.get_event_loop().time() < deadline:
-        msgs = await client.get_messages(bf_entity, limit=3)
-        for msg in msgs:
-            if msg.id > after_id and msg.text:
-                return msg.text
+        msgs = await client.get_messages(bf_entity, limit=10)
+        for msg in reversed(msgs):
+            if msg.id <= after_id or not msg.text or msg.out:
+                continue
+
+            newest_seen_id = max(newest_seen_id, msg.id)
+            text = msg.text
+            logger.info(
+                "BotFather reply id=%s text=%r",
+                msg.id,
+                _redact_bot_tokens(text)[:120],
+            )
+
+            if expected is None or expected.lower() in text.lower():
+                return text, msg.id
+
+            if "sorry" in text.lower() or "invalid" in text.lower() or "taken" in text.lower():
+                logger.info(
+                    "BotFather reply did not match expected=%r; stopping on error-like response",
+                    expected,
+                )
+                return text, msg.id
+
         await asyncio.sleep(1)
-    raise BotFatherError("Timed out waiting for BotFather reply")
+
+    raise BotFatherError(
+        f"Timed out waiting for BotFather reply"
+        f"{f' containing {expected!r}' if expected else ''} after message id {newest_seen_id}"
+    )
 
 
 async def create_telegram_bot(agent_name: str, suffix: str) -> tuple[str, str]:
@@ -203,19 +235,32 @@ async def create_telegram_bot(agent_name: str, suffix: str) -> tuple[str, str]:
         seed_msgs = await client.get_messages(bf_entity, limit=1)
         last_id = seed_msgs[0].id if seed_msgs else 0
 
-        await client.send_message(bf_entity, "/newbot")
-        reply = await _wait_for_botfather_reply(client, bf_entity, last_id)
-        last_id = (await client.get_messages(bf_entity, limit=1))[0].id
+        sent = await client.send_message(bf_entity, "/newbot")
+        last_id = max(last_id, sent.id)
+        reply, last_id = await _wait_for_botfather_reply(
+            client, bf_entity, last_id, expected="choose a name"
+        )
 
         if "already" in reply.lower() or "error" in reply.lower():
-            raise BotFatherError(f"BotFather error after /newbot: {reply[:200]}")
+            raise BotFatherError(
+                f"BotFather error after /newbot: {_redact_bot_tokens(reply)[:200]}"
+            )
 
-        await client.send_message(bf_entity, agent_name)
-        await _wait_for_botfather_reply(client, bf_entity, last_id)
-        last_id = (await client.get_messages(bf_entity, limit=1))[0].id
+        sent = await client.send_message(bf_entity, agent_name)
+        last_id = max(last_id, sent.id)
+        reply, last_id = await _wait_for_botfather_reply(
+            client, bf_entity, last_id, expected="choose a username"
+        )
+        if "username" not in reply.lower() or "choose" not in reply.lower():
+            raise BotFatherError(
+                f"Unexpected BotFather reply after bot name: {_redact_bot_tokens(reply)[:200]}"
+            )
 
-        await client.send_message(bf_entity, bot_username)
-        final_reply = await _wait_for_botfather_reply(client, bf_entity, last_id)
+        sent = await client.send_message(bf_entity, bot_username)
+        last_id = max(last_id, sent.id)
+        final_reply, _ = await _wait_for_botfather_reply(
+            client, bf_entity, last_id, expected="HTTP API"
+        )
 
         token = None
         actual_username = bot_username
@@ -231,7 +276,7 @@ async def create_telegram_bot(agent_name: str, suffix: str) -> tuple[str, str]:
         if not token:
             raise BotFatherError(
                 f"BotFather did not return a token for @{bot_username}. "
-                f"Response: {final_reply[:200]}"
+                f"Response: {_redact_bot_tokens(final_reply)[:200]}"
             )
 
     return token, actual_username
