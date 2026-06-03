@@ -76,6 +76,8 @@ cp .env.example .env
 
 Edit `.env` and fill in all required values. See the [Environment Variables](#environment-variables) section below for a full explanation.
 
+The root `docker-compose.yml` loads this `.env` into both the `web` and `worker` services. Keep container paths such as `AGENTS_BASE_DIR=/agents` and `TELEGRAM_SESSION=/data/botfather_session` when using the included compose file; the host directories are mounted separately.
+
 ### 3. Build and Start
 
 ```bash
@@ -99,8 +101,8 @@ Make sure the `AGENT_IMAGE` in your `.env` matches this tag (e.g., `student-pa-a
 # Check container status
 docker compose ps
 
-# Check worker health
-curl http://localhost:8000/health
+# Check worker health from inside the compose network
+docker compose exec worker curl -f http://localhost:8000/health
 
 # Check web dashboard
 open http://localhost:3000
@@ -124,15 +126,13 @@ Follow the prompts to enter your phone number and Telegram confirmation code. Th
 
 ## Environment Variables
 
-Here's what every variable in `.env.example` does:
+Here are the deployment variables loaded from `.env` by the root Docker Compose setup:
 
 ### Database
 
 | Variable | Example | Description |
 |----------|---------|-------------|
-| `DB_PASSWORD` | `change-me` | PostgreSQL password |
-| `DB_NAME` | `agenthub` | Database name |
-| `DATABASE_URL` | `postgresql://...` | Full connection string |
+| `DATABASE_URL` | `postgresql://...` | Full connection string for your existing PostgreSQL server |
 
 ### Web / Auth
 
@@ -141,6 +141,7 @@ Here's what every variable in `.env.example` does:
 | `BETTER_AUTH_URL` | `http://localhost:3000` | The public URL of your web app |
 | `BETTER_AUTH_SECRET` | `random-string` | Secret for signing auth tokens |
 | `WEB_PORT` | `3000` | Port the web service listens on |
+| `WORKER_URL` | `http://worker:8000` | Internal worker URL used by the web service inside Docker Compose |
 
 ### SMTP (Optional)
 
@@ -173,7 +174,10 @@ Here's what every variable in `.env.example` does:
 |----------|---------|-------------|
 | `PROVISIONER_SECRET` | `random-string` | Shared secret between web and worker |
 | `AGENT_IMAGE` | `student-pa-agent:latest` | Docker image tag for student agents |
-| `AGENTS_BASE_DIR` | `./agents` | Host path where per-student data lives |
+| `AGENTS_BASE_DIR` | `/agents` | Container path where the worker writes per-student runtime data. The root compose file mounts host `./agents` there. |
+| `AGENT_DOCKER_NETWORK` | `student-pa` | Docker network used by the worker when starting per-student agent containers |
+| `PROVISION_RETRIES` | `3` | Number of phase-2 container startup attempts |
+| `PROVISION_RETRY_DELAY_SECONDS` | `10` | Delay between phase-2 retry attempts |
 
 ### Telethon / BotFather Automation
 
@@ -182,7 +186,7 @@ Here's what every variable in `.env.example` does:
 | `TELEGRAM_API_ID` | `12345678` | From my.telegram.org |
 | `TELEGRAM_API_HASH` | `abc123...` | From my.telegram.org |
 | `TELEGRAM_PHONE` | `+1234567890` | Your personal phone number |
-| `TELEGRAM_SESSION` | `./worker/sessions/...` | Path to Telethon session file |
+| `TELEGRAM_SESSION` | `/data/botfather_session` | Container path to the Telethon session file. The root compose file mounts host `./worker/sessions` to `/data`. |
 
 ### Template Agent (Single-student Dev Mode)
 
@@ -246,9 +250,22 @@ If you don't want automatic bot creation:
 
 1. Get `TELEGRAM_API_ID` and `TELEGRAM_API_HASH` from [my.telegram.org/apps](https://my.telegram.org/apps).
 2. Set them in `.env` along with `TELEGRAM_PHONE`.
-3. Run `auth_telethon.py` once to authenticate.
+3. Run the worker Telethon authentication once:
+   ```bash
+   docker compose run --rm worker python auth_telethon.py
+   ```
+   If you already authenticated elsewhere and copied the session file to the server, you can skip this step. Make sure `.env`/compose points `TELEGRAM_SESSION` at the mounted in-container path, normally `/data/botfather_session`.
 4. Set `SIGNUP_BOT_TOKEN` to a separate bot you create manually for onboarding.
 5. Students use the signup bot, and the worker automatically creates their personal bot via BotFather.
+
+### Operational Secrets
+
+The Telethon session and generated agent runtime files are secrets, not disposable cache files:
+
+- `./worker/sessions/*` contains the Telethon login session for the Telegram account that talks to BotFather. Anyone with that session may be able to act as that Telegram account.
+- `./agents/{user_id}/secrets.json` contains generated bot tokens and LiteLLM keys. Treat nearby runtime files such as `agent.json` and `onboarding.json` as sensitive because they identify students and provisioning state.
+- Back up these directories with encryption and access controls. Do not commit them, upload them to shared logs, or include them in support bundles without redaction.
+- Rotate carefully: revoke leaked Telegram bot tokens in BotFather, revoke leaked LiteLLM keys in LiteLLM, and delete/recreate the Telethon session only after you are ready to re-authenticate the Telegram account.
 
 ---
 
@@ -331,6 +348,8 @@ Never commit `.env` files. In production, use:
 - **Kubernetes Secrets**
 - **AWS Secrets Manager / GCP Secret Manager / Azure Key Vault**
 - **HashiCorp Vault**
+
+Also include the Telethon session directory and per-agent runtime directories in your secret-handling policy. They should be backed up for recovery, but only in encrypted storage with the same care as API keys.
 
 ---
 

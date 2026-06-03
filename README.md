@@ -67,6 +67,7 @@ cd student-pa
 # 2. Configure environment
 cp .env.example .env
 # Edit .env and fill in your keys (see docs/SETUP.md for details)
+# docker-compose.yml passes this file to both web and worker
 
 # 3. Build and start all services
 docker compose up -d --build
@@ -161,6 +162,7 @@ Security is a priority for Student-PA because we handle student data and API key
 - Containers run as non-root users with minimal capabilities.
 - API keys are never committed to the repository (see `.gitignore`).
 - Each student receives an isolated Docker container and a unique LiteLLM API key.
+- Treat `.env`, Telethon session files in `worker/sessions`, and generated agent runtime files under `agents/` as secrets. Back them up encrypted and rotate leaked Telegram bot tokens, LiteLLM keys, or Telethon sessions carefully.
 
 If you discover a security vulnerability, please **do not** open a public issue. Instead, follow the instructions in **[SECURITY.md](SECURITY.md)** to report it responsibly.
 

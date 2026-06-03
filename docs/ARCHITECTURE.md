@@ -152,6 +152,8 @@ If Phase 2 fails (e.g., Docker daemon is down), the student can retry later with
 | `./agents/{user_id}/hermes-data` | `/home/hermes/.hermes` | Config, memory, skills, logs |
 | `./agents/{user_id}/student-data` | `/home/hermes/student-data` | Uploaded files, resumes, lab data |
 
+The worker also writes runtime provisioning files under `./agents/{user_id}`. Files such as `secrets.json`, `agent.json`, and `onboarding.json` contain bot tokens, LiteLLM keys, student identifiers, and provisioning state, so operators should treat the whole per-student runtime directory as sensitive.
+
 ---
 
 ## Data Flow
@@ -247,6 +249,9 @@ For a university deployment with dozens or hundreds of students, containers prov
    - API keys never touch the filesystem unencrypted in the repo.
    - Worker stores bot tokens in `secrets.json` with `0o600` permissions.
    - `.env` and `*.session` files are gitignored.
+   - Telethon session files under `./worker/sessions` can authorize BotFather automation as the configured Telegram account.
+   - Per-agent runtime files under `./agents/{user_id}` include credentials and student metadata.
+   - Back up Telethon sessions and agent runtime directories only to encrypted storage, and rotate leaked Telegram bot tokens, LiteLLM keys, and Telethon sessions deliberately.
 
 4. **API Authentication**:
    - Worker endpoints require a shared `x-secret` header.

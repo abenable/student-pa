@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile
     container_name: student-pa-web
     restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "3000:3000"
     extra_hosts:
@@ -14,12 +16,15 @@ services:
         condition: service_started
     networks:
       - student-pa
+
   worker:
     build:
       context: ./worker
       dockerfile: Dockerfile
     container_name: student-pa-worker
     restart: unless-stopped
+    env_file:
+      - .env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./agents:/agents
@@ -33,5 +38,6 @@ services:
       retries: 3
     networks:
       - student-pa
+
 networks:
   student-pa:
