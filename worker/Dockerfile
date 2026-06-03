@@ -10,7 +10,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir --retries 10 --timeout 300 -r requirements.txt
 
-COPY main.py auth_telethon.py ./
+COPY *.py ./
 
 RUN mkdir -p /data /agents
 
