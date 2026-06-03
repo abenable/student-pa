@@ -22,14 +22,18 @@ export const Route = createFileRoute('/dashboard/onboarding')({
 function OnboardingPage() {
   const navigate = useNavigate()
   const { data: session } = authClient.useSession()
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1)
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1)
   const [bio, setBio] = useState('')
+  const [telegramUserId, setTelegramUserId] = useState('')
   const [agentName, setAgentName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [checkingAgent, setCheckingAgent] = useState(true)
 
   const [skipped, setSkipped] = useState(false)
+  const isTelegramUserIdValid =
+    /^[1-9]\d*$/.test(telegramUserId.trim()) &&
+    Number.isSafeInteger(Number(telegramUserId.trim()))
 
   useEffect(() => {
     async function checkExistingAgent() {
@@ -72,6 +76,7 @@ function OnboardingPage() {
           agentName: agentName.trim(),
           studentName: session?.user?.name || '',
           bio,
+          telegramUserId: telegramUserId.trim(),
         }),
       })
 
@@ -81,14 +86,14 @@ function OnboardingPage() {
       }
 
       // Briefly show success then redirect to dashboard
-      setStep(5)
+      setStep(6)
       setTimeout(() => {
         navigate({ to: '/dashboard', replace: true })
       }, 1500)
     } catch (e: any) {
       setError(e.message || 'Something went wrong')
       setIsSubmitting(false)
-      setStep(3)
+      setStep(4)
     }
   }
 
@@ -107,13 +112,13 @@ function OnboardingPage() {
       <div className="mx-auto px-6 py-16" style={{ maxWidth: '576px', width: '100%' }}>
         {/* Progress */}
         <div className="flex items-center justify-center gap-2 mb-10">
-          {[1, 2, 3].map((s) => (
+          {[1, 2, 3, 4].map((s) => (
             <div
               key={s}
               className="h-2 w-2 rounded-full transition-colors"
               style={{
                 backgroundColor:
-                  step === 5
+                  step === 6
                     ? '#cccccc'
                     : step >= s
                       ? '#0070d1'
@@ -198,6 +203,43 @@ function OnboardingPage() {
           {step === 3 && (
             <div>
               <h1 className="text-[28px] font-light leading-[1.25] font-['Roboto']">
+                Add your Telegram ID
+              </h1>
+              <p className="text-foreground/60 mt-2">
+                Enter your numeric Telegram user ID, not your @username.
+              </p>
+
+              <input
+                type="text"
+                inputMode="numeric"
+                value={telegramUserId}
+                onChange={(e) => setTelegramUserId(e.target.value.replace(/\D/g, ''))}
+                placeholder="e.g. 123456789"
+                className="w-full h-12 mt-6 bg-white dark:bg-[#121314] border border-foreground/20 text-foreground rounded-sm px-4 text-base focus:outline-none focus:border-[#0070d1] placeholder:text-foreground/30"
+              />
+
+              <div className="mt-8 flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setStep(2)}
+                  className="border-foreground/20 text-foreground rounded-full px-6 h-12 font-bold"
+                >
+                  Back
+                </Button>
+                <Button
+                  disabled={!isTelegramUserIdValid}
+                  onClick={() => setStep(4)}
+                  className="bg-[#0070d1] text-white rounded-full px-7 h-12 font-bold hover:bg-[#0064b7] disabled:opacity-50"
+                >
+                  Continue
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div>
+              <h1 className="text-[28px] font-light leading-[1.25] font-['Roboto']">
                 Name your agent
               </h1>
               <p className="text-foreground/60 mt-2">
@@ -221,7 +263,7 @@ function OnboardingPage() {
               <div className="mt-8 flex items-center gap-3">
                 <Button
                   variant="outline"
-                  onClick={() => setStep(2)}
+                  onClick={() => setStep(3)}
                   className="border-foreground/20 text-foreground rounded-full px-6 h-12 font-bold"
                 >
                   Back
@@ -229,7 +271,7 @@ function OnboardingPage() {
                 <Button
                   disabled={!agentName.trim() || isSubmitting}
                   onClick={() => {
-                    setStep(4)
+                    setStep(5)
                     handleCreateAgent()
                   }}
                   className="bg-[#0070d1] text-white rounded-full px-7 h-12 font-bold hover:bg-[#0064b7] disabled:opacity-50"
@@ -247,7 +289,7 @@ function OnboardingPage() {
             </div>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <div className="text-center py-8">
               <Loader2 className="mx-auto h-12 w-12 text-[#0070d1] animate-spin mb-6" />
               <h2 className="text-[24px] font-light leading-[1.25] font-['Roboto']">
@@ -259,7 +301,7 @@ function OnboardingPage() {
             </div>
           )}
 
-          {step === 5 && (
+          {step === 6 && (
             <div className="text-center py-8">
               <CheckCircle className="mx-auto h-12 w-12 text-amber-500 mb-6" />
               <h2 className="text-[24px] font-light leading-[1.25] font-['Roboto']">

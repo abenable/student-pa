@@ -143,6 +143,7 @@ export type VerificationScalarFieldEnum = (typeof VerificationScalarFieldEnum)[k
 export const AgentScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  telegramUserId: 'telegramUserId',
   name: 'name',
   studentName: 'studentName',
   bio: 'bio',
@@ -151,6 +152,8 @@ export const AgentScalarFieldEnum = {
   botToken: 'botToken',
   litellmKey: 'litellmKey',
   status: 'status',
+  provisioningStep: 'provisioningStep',
+  apiKey: 'apiKey',
   approvedAt: 'approvedAt',
   approvedBy: 'approvedBy',
   containerRunning: 'containerRunning',

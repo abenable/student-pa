@@ -5,6 +5,7 @@ import { isAdmin } from '#/lib/roles'
 
 const WORKER_URL = process.env.WORKER_URL || 'http://worker:8000'
 const PROVISIONER_SECRET = process.env.PROVISIONER_SECRET
+const JSON_HEADERS = { 'Content-Type': 'application/json' }
 
 async function getSessionUser(request: Request): Promise<{ id: string; role?: string | null } | null> {
   try {
@@ -16,6 +17,37 @@ async function getSessionUser(request: Request): Promise<{ id: string; role?: st
   }
 }
 
+function serializeAdminAgent(agent: any) {
+  return {
+    id: agent.id,
+    name: agent.name,
+    studentName: agent.studentName,
+    bio: agent.bio,
+    status: agent.status,
+    provisioningStep: agent.provisioningStep,
+    containerName: agent.containerName,
+    containerRunning: agent.containerRunning,
+    botUsername: agent.botUsername,
+    hasTelegramUserId: Boolean(agent.telegramUserId),
+    hasBotToken: Boolean(agent.botToken),
+    hasLiteLLMKey: Boolean(agent.litellmKey),
+    approvedAt: agent.approvedAt,
+    approvedBy: agent.approvedBy,
+    createdAt: agent.createdAt,
+    updatedAt: agent.updatedAt,
+    user: agent.user,
+  }
+}
+
+function getWorkerTelegramUserId(value: bigint | null | undefined): string | null {
+  if (!value) {
+    return null
+  }
+
+  const numericValue = Number(value)
+  return Number.isSafeInteger(numericValue) && numericValue > 0 ? value.toString() : null
+}
+
 export const Route = createFileRoute('/api/admin/approvals')({
   server: {
     handlers: {
@@ -25,7 +57,7 @@ export const Route = createFileRoute('/api/admin/approvals')({
           if (!user || !isAdmin(user.role)) {
             return new Response(
               JSON.stringify({ message: 'Forbidden' }),
-              { status: 403, headers: { 'Content-Type': 'application/json' } }
+              { status: 403, headers: JSON_HEADERS }
             )
           }
 
@@ -38,13 +70,13 @@ export const Route = createFileRoute('/api/admin/approvals')({
           })
 
           return new Response(
-            JSON.stringify({ pending }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } }
+            JSON.stringify({ pending: pending.map(serializeAdminAgent) }),
+            { status: 200, headers: JSON_HEADERS }
           )
         } catch (error: any) {
           return new Response(
             JSON.stringify({ message: error.message || 'Internal server error' }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } }
+            { status: 500, headers: JSON_HEADERS }
           )
         }
       },
@@ -55,7 +87,7 @@ export const Route = createFileRoute('/api/admin/approvals')({
           if (!user || !isAdmin(user.role)) {
             return new Response(
               JSON.stringify({ message: 'Forbidden' }),
-              { status: 403, headers: { 'Content-Type': 'application/json' } }
+              { status: 403, headers: JSON_HEADERS }
             )
           }
 
@@ -65,7 +97,7 @@ export const Route = createFileRoute('/api/admin/approvals')({
           if (!agentId || !['approve', 'reject'].includes(action)) {
             return new Response(
               JSON.stringify({ message: 'Invalid action or agentId' }),
-              { status: 400, headers: { 'Content-Type': 'application/json' } }
+              { status: 400, headers: JSON_HEADERS }
             )
           }
 
@@ -77,7 +109,7 @@ export const Route = createFileRoute('/api/admin/approvals')({
           if (!agent) {
             return new Response(
               JSON.stringify({ message: 'Agent not found' }),
-              { status: 404, headers: { 'Content-Type': 'application/json' } }
+              { status: 404, headers: JSON_HEADERS }
             )
           }
 
@@ -85,7 +117,7 @@ export const Route = createFileRoute('/api/admin/approvals')({
             await prisma.agent.delete({ where: { id: agentId } })
             return new Response(
               JSON.stringify({ success: true, message: 'Agent rejected and removed' }),
-              { status: 200, headers: { 'Content-Type': 'application/json' } }
+              { status: 200, headers: JSON_HEADERS }
             )
           }
 
@@ -93,7 +125,15 @@ export const Route = createFileRoute('/api/admin/approvals')({
           if (!PROVISIONER_SECRET) {
             return new Response(
               JSON.stringify({ message: 'Provisioner secret not configured' }),
-              { status: 500, headers: { 'Content-Type': 'application/json' } }
+              { status: 500, headers: JSON_HEADERS }
+            )
+          }
+
+          const telegramUserId = getWorkerTelegramUserId(agent.telegramUserId)
+          if (!telegramUserId) {
+            return new Response(
+              JSON.stringify({ message: 'A valid numeric Telegram user ID is required before provisioning' }),
+              { status: 400, headers: JSON_HEADERS }
             )
           }
 
@@ -107,7 +147,7 @@ export const Route = createFileRoute('/api/admin/approvals')({
               'x-secret': PROVISIONER_SECRET,
             },
             body: JSON.stringify({
-              telegram_user_id: agent.userId,
+              telegram_user_id: telegramUserId,
               telegram_username: telegramUsername,
               agent_name: agent.name,
               student_name: agent.studentName,
@@ -119,7 +159,7 @@ export const Route = createFileRoute('/api/admin/approvals')({
             const errText = await phase1Res.text().catch(() => 'Worker phase 1 failed')
             return new Response(
               JSON.stringify({ message: errText }),
-              { status: phase1Res.status, headers: { 'Content-Type': 'application/json' } }
+              { status: phase1Res.status, headers: JSON_HEADERS }
             )
           }
 
@@ -148,7 +188,7 @@ export const Route = createFileRoute('/api/admin/approvals')({
               'x-secret': PROVISIONER_SECRET,
             },
             body: JSON.stringify({
-              telegram_user_id: agent.userId,
+              telegram_user_id: telegramUserId,
             }),
           })
 
@@ -173,17 +213,20 @@ export const Route = createFileRoute('/api/admin/approvals')({
               provisioningStep,
               containerRunning,
             },
+            include: {
+              user: { select: { id: true, name: true, email: true, createdAt: true } },
+            },
           })
 
           return new Response(
-            JSON.stringify({ success: true, agent: updated }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } }
+            JSON.stringify({ success: true, agent: serializeAdminAgent(updated) }),
+            { status: 200, headers: JSON_HEADERS }
           )
         } catch (error: any) {
           console.error('Approval error:', error)
           return new Response(
             JSON.stringify({ message: error.message || 'Internal server error' }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } }
+            { status: 500, headers: JSON_HEADERS }
           )
         }
       },

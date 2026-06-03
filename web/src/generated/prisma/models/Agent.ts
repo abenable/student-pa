@@ -20,13 +20,24 @@ export type AgentModel = runtime.Types.Result.DefaultSelection<Prisma.$AgentPayl
 
 export type AggregateAgent = {
   _count: AgentCountAggregateOutputType | null
+  _avg: AgentAvgAggregateOutputType | null
+  _sum: AgentSumAggregateOutputType | null
   _min: AgentMinAggregateOutputType | null
   _max: AgentMaxAggregateOutputType | null
+}
+
+export type AgentAvgAggregateOutputType = {
+  telegramUserId: number | null
+}
+
+export type AgentSumAggregateOutputType = {
+  telegramUserId: bigint | null
 }
 
 export type AgentMinAggregateOutputType = {
   id: string | null
   userId: string | null
+  telegramUserId: bigint | null
   name: string | null
   studentName: string | null
   bio: string | null
@@ -35,6 +46,8 @@ export type AgentMinAggregateOutputType = {
   botToken: string | null
   litellmKey: string | null
   status: $Enums.AgentStatus | null
+  provisioningStep: string | null
+  apiKey: string | null
   approvedAt: Date | null
   approvedBy: string | null
   containerRunning: boolean | null
@@ -45,6 +58,7 @@ export type AgentMinAggregateOutputType = {
 export type AgentMaxAggregateOutputType = {
   id: string | null
   userId: string | null
+  telegramUserId: bigint | null
   name: string | null
   studentName: string | null
   bio: string | null
@@ -53,6 +67,8 @@ export type AgentMaxAggregateOutputType = {
   botToken: string | null
   litellmKey: string | null
   status: $Enums.AgentStatus | null
+  provisioningStep: string | null
+  apiKey: string | null
   approvedAt: Date | null
   approvedBy: string | null
   containerRunning: boolean | null
@@ -63,6 +79,7 @@ export type AgentMaxAggregateOutputType = {
 export type AgentCountAggregateOutputType = {
   id: number
   userId: number
+  telegramUserId: number
   name: number
   studentName: number
   bio: number
@@ -71,6 +88,8 @@ export type AgentCountAggregateOutputType = {
   botToken: number
   litellmKey: number
   status: number
+  provisioningStep: number
+  apiKey: number
   approvedAt: number
   approvedBy: number
   containerRunning: number
@@ -80,9 +99,18 @@ export type AgentCountAggregateOutputType = {
 }
 
 
+export type AgentAvgAggregateInputType = {
+  telegramUserId?: true
+}
+
+export type AgentSumAggregateInputType = {
+  telegramUserId?: true
+}
+
 export type AgentMinAggregateInputType = {
   id?: true
   userId?: true
+  telegramUserId?: true
   name?: true
   studentName?: true
   bio?: true
@@ -91,6 +119,8 @@ export type AgentMinAggregateInputType = {
   botToken?: true
   litellmKey?: true
   status?: true
+  provisioningStep?: true
+  apiKey?: true
   approvedAt?: true
   approvedBy?: true
   containerRunning?: true
@@ -101,6 +131,7 @@ export type AgentMinAggregateInputType = {
 export type AgentMaxAggregateInputType = {
   id?: true
   userId?: true
+  telegramUserId?: true
   name?: true
   studentName?: true
   bio?: true
@@ -109,6 +140,8 @@ export type AgentMaxAggregateInputType = {
   botToken?: true
   litellmKey?: true
   status?: true
+  provisioningStep?: true
+  apiKey?: true
   approvedAt?: true
   approvedBy?: true
   containerRunning?: true
@@ -119,6 +152,7 @@ export type AgentMaxAggregateInputType = {
 export type AgentCountAggregateInputType = {
   id?: true
   userId?: true
+  telegramUserId?: true
   name?: true
   studentName?: true
   bio?: true
@@ -127,6 +161,8 @@ export type AgentCountAggregateInputType = {
   botToken?: true
   litellmKey?: true
   status?: true
+  provisioningStep?: true
+  apiKey?: true
   approvedAt?: true
   approvedBy?: true
   containerRunning?: true
@@ -173,6 +209,18 @@ export type AgentAggregateArgs<ExtArgs extends runtime.Types.Extensions.Internal
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: AgentAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: AgentSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: AgentMinAggregateInputType
@@ -203,6 +251,8 @@ export type AgentGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   _count?: AgentCountAggregateInputType | true
+  _avg?: AgentAvgAggregateInputType
+  _sum?: AgentSumAggregateInputType
   _min?: AgentMinAggregateInputType
   _max?: AgentMaxAggregateInputType
 }
@@ -210,6 +260,7 @@ export type AgentGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 export type AgentGroupByOutputType = {
   id: string
   userId: string
+  telegramUserId: bigint | null
   name: string
   studentName: string
   bio: string
@@ -218,12 +269,16 @@ export type AgentGroupByOutputType = {
   botToken: string | null
   litellmKey: string | null
   status: $Enums.AgentStatus
+  provisioningStep: string | null
+  apiKey: string | null
   approvedAt: Date | null
   approvedBy: string | null
   containerRunning: boolean
   createdAt: Date
   updatedAt: Date
   _count: AgentCountAggregateOutputType | null
+  _avg: AgentAvgAggregateOutputType | null
+  _sum: AgentSumAggregateOutputType | null
   _min: AgentMinAggregateOutputType | null
   _max: AgentMaxAggregateOutputType | null
 }
@@ -249,6 +304,7 @@ export type AgentWhereInput = {
   NOT?: Prisma.AgentWhereInput | Prisma.AgentWhereInput[]
   id?: Prisma.StringFilter<"Agent"> | string
   userId?: Prisma.StringFilter<"Agent"> | string
+  telegramUserId?: Prisma.BigIntNullableFilter<"Agent"> | bigint | number | null
   name?: Prisma.StringFilter<"Agent"> | string
   studentName?: Prisma.StringFilter<"Agent"> | string
   bio?: Prisma.StringFilter<"Agent"> | string
@@ -257,6 +313,8 @@ export type AgentWhereInput = {
   botToken?: Prisma.StringNullableFilter<"Agent"> | string | null
   litellmKey?: Prisma.StringNullableFilter<"Agent"> | string | null
   status?: Prisma.EnumAgentStatusFilter<"Agent"> | $Enums.AgentStatus
+  provisioningStep?: Prisma.StringNullableFilter<"Agent"> | string | null
+  apiKey?: Prisma.StringNullableFilter<"Agent"> | string | null
   approvedAt?: Prisma.DateTimeNullableFilter<"Agent"> | Date | string | null
   approvedBy?: Prisma.StringNullableFilter<"Agent"> | string | null
   containerRunning?: Prisma.BoolFilter<"Agent"> | boolean
@@ -270,6 +328,7 @@ export type AgentWhereInput = {
 export type AgentOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  telegramUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   studentName?: Prisma.SortOrder
   bio?: Prisma.SortOrder
@@ -278,6 +337,8 @@ export type AgentOrderByWithRelationInput = {
   botToken?: Prisma.SortOrderInput | Prisma.SortOrder
   litellmKey?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  provisioningStep?: Prisma.SortOrderInput | Prisma.SortOrder
+  apiKey?: Prisma.SortOrderInput | Prisma.SortOrder
   approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   approvedBy?: Prisma.SortOrderInput | Prisma.SortOrder
   containerRunning?: Prisma.SortOrder
@@ -291,6 +352,7 @@ export type AgentOrderByWithRelationInput = {
 export type AgentWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   userId?: string
+  telegramUserId?: bigint | number
   containerName?: string
   AND?: Prisma.AgentWhereInput | Prisma.AgentWhereInput[]
   OR?: Prisma.AgentWhereInput[]
@@ -302,6 +364,8 @@ export type AgentWhereUniqueInput = Prisma.AtLeast<{
   botToken?: Prisma.StringNullableFilter<"Agent"> | string | null
   litellmKey?: Prisma.StringNullableFilter<"Agent"> | string | null
   status?: Prisma.EnumAgentStatusFilter<"Agent"> | $Enums.AgentStatus
+  provisioningStep?: Prisma.StringNullableFilter<"Agent"> | string | null
+  apiKey?: Prisma.StringNullableFilter<"Agent"> | string | null
   approvedAt?: Prisma.DateTimeNullableFilter<"Agent"> | Date | string | null
   approvedBy?: Prisma.StringNullableFilter<"Agent"> | string | null
   containerRunning?: Prisma.BoolFilter<"Agent"> | boolean
@@ -310,11 +374,12 @@ export type AgentWhereUniqueInput = Prisma.AtLeast<{
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   serviceRuns?: Prisma.ServiceRunListRelationFilter
   chatMessages?: Prisma.ChatMessageListRelationFilter
-}, "id" | "userId" | "containerName">
+}, "id" | "userId" | "telegramUserId" | "containerName">
 
 export type AgentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  telegramUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   studentName?: Prisma.SortOrder
   bio?: Prisma.SortOrder
@@ -323,14 +388,18 @@ export type AgentOrderByWithAggregationInput = {
   botToken?: Prisma.SortOrderInput | Prisma.SortOrder
   litellmKey?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  provisioningStep?: Prisma.SortOrderInput | Prisma.SortOrder
+  apiKey?: Prisma.SortOrderInput | Prisma.SortOrder
   approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   approvedBy?: Prisma.SortOrderInput | Prisma.SortOrder
   containerRunning?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AgentCountOrderByAggregateInput
+  _avg?: Prisma.AgentAvgOrderByAggregateInput
   _max?: Prisma.AgentMaxOrderByAggregateInput
   _min?: Prisma.AgentMinOrderByAggregateInput
+  _sum?: Prisma.AgentSumOrderByAggregateInput
 }
 
 export type AgentScalarWhereWithAggregatesInput = {
@@ -339,6 +408,7 @@ export type AgentScalarWhereWithAggregatesInput = {
   NOT?: Prisma.AgentScalarWhereWithAggregatesInput | Prisma.AgentScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Agent"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Agent"> | string
+  telegramUserId?: Prisma.BigIntNullableWithAggregatesFilter<"Agent"> | bigint | number | null
   name?: Prisma.StringWithAggregatesFilter<"Agent"> | string
   studentName?: Prisma.StringWithAggregatesFilter<"Agent"> | string
   bio?: Prisma.StringWithAggregatesFilter<"Agent"> | string
@@ -347,6 +417,8 @@ export type AgentScalarWhereWithAggregatesInput = {
   botToken?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   litellmKey?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   status?: Prisma.EnumAgentStatusWithAggregatesFilter<"Agent"> | $Enums.AgentStatus
+  provisioningStep?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
+  apiKey?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   approvedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Agent"> | Date | string | null
   approvedBy?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   containerRunning?: Prisma.BoolWithAggregatesFilter<"Agent"> | boolean
@@ -356,6 +428,7 @@ export type AgentScalarWhereWithAggregatesInput = {
 
 export type AgentCreateInput = {
   id?: string
+  telegramUserId?: bigint | number | null
   name: string
   studentName: string
   bio: string
@@ -364,6 +437,8 @@ export type AgentCreateInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  provisioningStep?: string | null
+  apiKey?: string | null
   approvedAt?: Date | string | null
   approvedBy?: string | null
   containerRunning?: boolean
@@ -377,6 +452,7 @@ export type AgentCreateInput = {
 export type AgentUncheckedCreateInput = {
   id?: string
   userId: string
+  telegramUserId?: bigint | number | null
   name: string
   studentName: string
   bio: string
@@ -385,6 +461,8 @@ export type AgentUncheckedCreateInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  provisioningStep?: string | null
+  apiKey?: string | null
   approvedAt?: Date | string | null
   approvedBy?: string | null
   containerRunning?: boolean
@@ -396,6 +474,7 @@ export type AgentUncheckedCreateInput = {
 
 export type AgentUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  telegramUserId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   studentName?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.StringFieldUpdateOperationsInput | string
@@ -404,6 +483,8 @@ export type AgentUpdateInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  provisioningStep?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -417,6 +498,7 @@ export type AgentUpdateInput = {
 export type AgentUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  telegramUserId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   studentName?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.StringFieldUpdateOperationsInput | string
@@ -425,6 +507,8 @@ export type AgentUncheckedUpdateInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  provisioningStep?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -437,6 +521,7 @@ export type AgentUncheckedUpdateInput = {
 export type AgentCreateManyInput = {
   id?: string
   userId: string
+  telegramUserId?: bigint | number | null
   name: string
   studentName: string
   bio: string
@@ -445,6 +530,8 @@ export type AgentCreateManyInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  provisioningStep?: string | null
+  apiKey?: string | null
   approvedAt?: Date | string | null
   approvedBy?: string | null
   containerRunning?: boolean
@@ -454,6 +541,7 @@ export type AgentCreateManyInput = {
 
 export type AgentUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  telegramUserId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   studentName?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.StringFieldUpdateOperationsInput | string
@@ -462,6 +550,8 @@ export type AgentUpdateManyMutationInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  provisioningStep?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -472,6 +562,7 @@ export type AgentUpdateManyMutationInput = {
 export type AgentUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  telegramUserId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   studentName?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.StringFieldUpdateOperationsInput | string
@@ -480,6 +571,8 @@ export type AgentUncheckedUpdateManyInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  provisioningStep?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -495,6 +588,7 @@ export type AgentNullableScalarRelationFilter = {
 export type AgentCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  telegramUserId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   studentName?: Prisma.SortOrder
   bio?: Prisma.SortOrder
@@ -503,6 +597,8 @@ export type AgentCountOrderByAggregateInput = {
   botToken?: Prisma.SortOrder
   litellmKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  provisioningStep?: Prisma.SortOrder
+  apiKey?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
   approvedBy?: Prisma.SortOrder
   containerRunning?: Prisma.SortOrder
@@ -510,9 +606,14 @@ export type AgentCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type AgentAvgOrderByAggregateInput = {
+  telegramUserId?: Prisma.SortOrder
+}
+
 export type AgentMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  telegramUserId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   studentName?: Prisma.SortOrder
   bio?: Prisma.SortOrder
@@ -521,6 +622,8 @@ export type AgentMaxOrderByAggregateInput = {
   botToken?: Prisma.SortOrder
   litellmKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  provisioningStep?: Prisma.SortOrder
+  apiKey?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
   approvedBy?: Prisma.SortOrder
   containerRunning?: Prisma.SortOrder
@@ -531,6 +634,7 @@ export type AgentMaxOrderByAggregateInput = {
 export type AgentMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  telegramUserId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   studentName?: Prisma.SortOrder
   bio?: Prisma.SortOrder
@@ -539,11 +643,17 @@ export type AgentMinOrderByAggregateInput = {
   botToken?: Prisma.SortOrder
   litellmKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  provisioningStep?: Prisma.SortOrder
+  apiKey?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
   approvedBy?: Prisma.SortOrder
   containerRunning?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type AgentSumOrderByAggregateInput = {
+  telegramUserId?: Prisma.SortOrder
 }
 
 export type AgentScalarRelationFilter = {
@@ -583,6 +693,14 @@ export type AgentUncheckedUpdateOneWithoutUserNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AgentUpdateToOneWithWhereWithoutUserInput, Prisma.AgentUpdateWithoutUserInput>, Prisma.AgentUncheckedUpdateWithoutUserInput>
 }
 
+export type NullableBigIntFieldUpdateOperationsInput = {
+  set?: bigint | number | null
+  increment?: bigint | number
+  decrement?: bigint | number
+  multiply?: bigint | number
+  divide?: bigint | number
+}
+
 export type EnumAgentStatusFieldUpdateOperationsInput = {
   set?: $Enums.AgentStatus
 }
@@ -617,6 +735,7 @@ export type AgentUpdateOneRequiredWithoutChatMessagesNestedInput = {
 
 export type AgentCreateWithoutUserInput = {
   id?: string
+  telegramUserId?: bigint | number | null
   name: string
   studentName: string
   bio: string
@@ -625,6 +744,8 @@ export type AgentCreateWithoutUserInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  provisioningStep?: string | null
+  apiKey?: string | null
   approvedAt?: Date | string | null
   approvedBy?: string | null
   containerRunning?: boolean
@@ -636,6 +757,7 @@ export type AgentCreateWithoutUserInput = {
 
 export type AgentUncheckedCreateWithoutUserInput = {
   id?: string
+  telegramUserId?: bigint | number | null
   name: string
   studentName: string
   bio: string
@@ -644,6 +766,8 @@ export type AgentUncheckedCreateWithoutUserInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  provisioningStep?: string | null
+  apiKey?: string | null
   approvedAt?: Date | string | null
   approvedBy?: string | null
   containerRunning?: boolean
@@ -671,6 +795,7 @@ export type AgentUpdateToOneWithWhereWithoutUserInput = {
 
 export type AgentUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  telegramUserId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   studentName?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.StringFieldUpdateOperationsInput | string
@@ -679,6 +804,8 @@ export type AgentUpdateWithoutUserInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  provisioningStep?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -690,6 +817,7 @@ export type AgentUpdateWithoutUserInput = {
 
 export type AgentUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  telegramUserId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   studentName?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.StringFieldUpdateOperationsInput | string
@@ -698,6 +826,8 @@ export type AgentUncheckedUpdateWithoutUserInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  provisioningStep?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -709,6 +839,7 @@ export type AgentUncheckedUpdateWithoutUserInput = {
 
 export type AgentCreateWithoutServiceRunsInput = {
   id?: string
+  telegramUserId?: bigint | number | null
   name: string
   studentName: string
   bio: string
@@ -717,6 +848,8 @@ export type AgentCreateWithoutServiceRunsInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  provisioningStep?: string | null
+  apiKey?: string | null
   approvedAt?: Date | string | null
   approvedBy?: string | null
   containerRunning?: boolean
@@ -729,6 +862,7 @@ export type AgentCreateWithoutServiceRunsInput = {
 export type AgentUncheckedCreateWithoutServiceRunsInput = {
   id?: string
   userId: string
+  telegramUserId?: bigint | number | null
   name: string
   studentName: string
   bio: string
@@ -737,6 +871,8 @@ export type AgentUncheckedCreateWithoutServiceRunsInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  provisioningStep?: string | null
+  apiKey?: string | null
   approvedAt?: Date | string | null
   approvedBy?: string | null
   containerRunning?: boolean
@@ -763,6 +899,7 @@ export type AgentUpdateToOneWithWhereWithoutServiceRunsInput = {
 
 export type AgentUpdateWithoutServiceRunsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  telegramUserId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   studentName?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.StringFieldUpdateOperationsInput | string
@@ -771,6 +908,8 @@ export type AgentUpdateWithoutServiceRunsInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  provisioningStep?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -783,6 +922,7 @@ export type AgentUpdateWithoutServiceRunsInput = {
 export type AgentUncheckedUpdateWithoutServiceRunsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  telegramUserId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   studentName?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.StringFieldUpdateOperationsInput | string
@@ -791,6 +931,8 @@ export type AgentUncheckedUpdateWithoutServiceRunsInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  provisioningStep?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -801,6 +943,7 @@ export type AgentUncheckedUpdateWithoutServiceRunsInput = {
 
 export type AgentCreateWithoutChatMessagesInput = {
   id?: string
+  telegramUserId?: bigint | number | null
   name: string
   studentName: string
   bio: string
@@ -809,6 +952,8 @@ export type AgentCreateWithoutChatMessagesInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  provisioningStep?: string | null
+  apiKey?: string | null
   approvedAt?: Date | string | null
   approvedBy?: string | null
   containerRunning?: boolean
@@ -821,6 +966,7 @@ export type AgentCreateWithoutChatMessagesInput = {
 export type AgentUncheckedCreateWithoutChatMessagesInput = {
   id?: string
   userId: string
+  telegramUserId?: bigint | number | null
   name: string
   studentName: string
   bio: string
@@ -829,6 +975,8 @@ export type AgentUncheckedCreateWithoutChatMessagesInput = {
   botToken?: string | null
   litellmKey?: string | null
   status?: $Enums.AgentStatus
+  provisioningStep?: string | null
+  apiKey?: string | null
   approvedAt?: Date | string | null
   approvedBy?: string | null
   containerRunning?: boolean
@@ -855,6 +1003,7 @@ export type AgentUpdateToOneWithWhereWithoutChatMessagesInput = {
 
 export type AgentUpdateWithoutChatMessagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  telegramUserId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   studentName?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.StringFieldUpdateOperationsInput | string
@@ -863,6 +1012,8 @@ export type AgentUpdateWithoutChatMessagesInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  provisioningStep?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -875,6 +1026,7 @@ export type AgentUpdateWithoutChatMessagesInput = {
 export type AgentUncheckedUpdateWithoutChatMessagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  telegramUserId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   studentName?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.StringFieldUpdateOperationsInput | string
@@ -883,6 +1035,8 @@ export type AgentUncheckedUpdateWithoutChatMessagesInput = {
   botToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   litellmKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  provisioningStep?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  apiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   containerRunning?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -934,6 +1088,7 @@ export type AgentCountOutputTypeCountChatMessagesArgs<ExtArgs extends runtime.Ty
 export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  telegramUserId?: boolean
   name?: boolean
   studentName?: boolean
   bio?: boolean
@@ -942,6 +1097,8 @@ export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   botToken?: boolean
   litellmKey?: boolean
   status?: boolean
+  provisioningStep?: boolean
+  apiKey?: boolean
   approvedAt?: boolean
   approvedBy?: boolean
   containerRunning?: boolean
@@ -956,6 +1113,7 @@ export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type AgentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  telegramUserId?: boolean
   name?: boolean
   studentName?: boolean
   bio?: boolean
@@ -964,6 +1122,8 @@ export type AgentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   botToken?: boolean
   litellmKey?: boolean
   status?: boolean
+  provisioningStep?: boolean
+  apiKey?: boolean
   approvedAt?: boolean
   approvedBy?: boolean
   containerRunning?: boolean
@@ -975,6 +1135,7 @@ export type AgentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type AgentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  telegramUserId?: boolean
   name?: boolean
   studentName?: boolean
   bio?: boolean
@@ -983,6 +1144,8 @@ export type AgentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   botToken?: boolean
   litellmKey?: boolean
   status?: boolean
+  provisioningStep?: boolean
+  apiKey?: boolean
   approvedAt?: boolean
   approvedBy?: boolean
   containerRunning?: boolean
@@ -994,6 +1157,7 @@ export type AgentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type AgentSelectScalar = {
   id?: boolean
   userId?: boolean
+  telegramUserId?: boolean
   name?: boolean
   studentName?: boolean
   bio?: boolean
@@ -1002,6 +1166,8 @@ export type AgentSelectScalar = {
   botToken?: boolean
   litellmKey?: boolean
   status?: boolean
+  provisioningStep?: boolean
+  apiKey?: boolean
   approvedAt?: boolean
   approvedBy?: boolean
   containerRunning?: boolean
@@ -1009,7 +1175,7 @@ export type AgentSelectScalar = {
   updatedAt?: boolean
 }
 
-export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "studentName" | "bio" | "containerName" | "botUsername" | "botToken" | "litellmKey" | "status" | "approvedAt" | "approvedBy" | "containerRunning" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
+export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "telegramUserId" | "name" | "studentName" | "bio" | "containerName" | "botUsername" | "botToken" | "litellmKey" | "status" | "provisioningStep" | "apiKey" | "approvedAt" | "approvedBy" | "containerRunning" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
 export type AgentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   serviceRuns?: boolean | Prisma.Agent$serviceRunsArgs<ExtArgs>
@@ -1033,6 +1199,7 @@ export type $AgentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
+    telegramUserId: bigint | null
     name: string
     studentName: string
     bio: string
@@ -1041,6 +1208,8 @@ export type $AgentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     botToken: string | null
     litellmKey: string | null
     status: $Enums.AgentStatus
+    provisioningStep: string | null
+    apiKey: string | null
     approvedAt: Date | null
     approvedBy: string | null
     containerRunning: boolean
@@ -1474,6 +1643,7 @@ export interface Prisma__AgentClient<T, Null = never, ExtArgs extends runtime.Ty
 export interface AgentFieldRefs {
   readonly id: Prisma.FieldRef<"Agent", 'String'>
   readonly userId: Prisma.FieldRef<"Agent", 'String'>
+  readonly telegramUserId: Prisma.FieldRef<"Agent", 'BigInt'>
   readonly name: Prisma.FieldRef<"Agent", 'String'>
   readonly studentName: Prisma.FieldRef<"Agent", 'String'>
   readonly bio: Prisma.FieldRef<"Agent", 'String'>
@@ -1482,6 +1652,8 @@ export interface AgentFieldRefs {
   readonly botToken: Prisma.FieldRef<"Agent", 'String'>
   readonly litellmKey: Prisma.FieldRef<"Agent", 'String'>
   readonly status: Prisma.FieldRef<"Agent", 'AgentStatus'>
+  readonly provisioningStep: Prisma.FieldRef<"Agent", 'String'>
+  readonly apiKey: Prisma.FieldRef<"Agent", 'String'>
   readonly approvedAt: Prisma.FieldRef<"Agent", 'DateTime'>
   readonly approvedBy: Prisma.FieldRef<"Agent", 'String'>
   readonly containerRunning: Prisma.FieldRef<"Agent", 'Boolean'>

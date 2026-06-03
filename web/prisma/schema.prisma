@@ -82,6 +82,7 @@ model Verification {
 model Agent {
   id                String      @id @default(cuid())
   userId            String      @unique
+  telegramUserId    BigInt?     @unique
   name              String
   studentName       String
   bio               String

@@ -2,8 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { prisma } from '#/db'
 import { auth } from '#/lib/auth'
 
-const WORKER_URL = process.env.WORKER_URL || 'http://worker:8000'
-const PROVISIONER_SECRET = process.env.PROVISIONER_SECRET
+const JSON_HEADERS = { 'Content-Type': 'application/json' }
+const MAX_SAFE_TELEGRAM_USER_ID = BigInt(Number.MAX_SAFE_INTEGER)
 
 async function getSessionUserId(request: Request): Promise<string | null> {
   try {
@@ -17,6 +17,46 @@ async function getSessionUserId(request: Request): Promise<string | null> {
   }
 }
 
+function parseTelegramUserId(value: unknown): bigint | null {
+  if (typeof value === 'number') {
+    if (!Number.isSafeInteger(value) || value <= 0) {
+      return null
+    }
+    return BigInt(value)
+  }
+
+  if (typeof value !== 'string') {
+    return null
+  }
+
+  const trimmed = value.trim()
+  if (!/^[1-9]\d*$/.test(trimmed)) {
+    return null
+  }
+
+  const parsed = BigInt(trimmed)
+  return parsed <= MAX_SAFE_TELEGRAM_USER_ID ? parsed : null
+}
+
+function serializeUserAgent(agent: any) {
+  if (!agent) {
+    return null
+  }
+
+  return {
+    id: agent.id,
+    name: agent.name,
+    studentName: agent.studentName,
+    bio: agent.bio,
+    status: agent.status,
+    provisioningStep: agent.provisioningStep,
+    containerRunning: agent.containerRunning,
+    botUsername: agent.botUsername,
+    createdAt: agent.createdAt,
+    updatedAt: agent.updatedAt,
+  }
+}
+
 export const Route = createFileRoute('/api/provision')({
   server: {
     handlers: {
@@ -26,7 +66,7 @@ export const Route = createFileRoute('/api/provision')({
           if (!userId) {
             return new Response(
               JSON.stringify({ message: 'Unauthorized' }),
-              { status: 401, headers: { 'Content-Type': 'application/json' } }
+              { status: 401, headers: JSON_HEADERS }
             )
           }
           const user = await prisma.user.findUnique({
@@ -35,15 +75,31 @@ export const Route = createFileRoute('/api/provision')({
           })
           const agent = await prisma.agent.findUnique({
             where: { userId },
+            select: {
+              id: true,
+              name: true,
+              studentName: true,
+              bio: true,
+              status: true,
+              provisioningStep: true,
+              containerRunning: true,
+              botUsername: true,
+              createdAt: true,
+              updatedAt: true,
+            },
           })
           return new Response(
-            JSON.stringify({ agent, role: user?.role, onboardingSkipped: user?.onboardingSkipped }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } }
+            JSON.stringify({
+              agent: serializeUserAgent(agent),
+              role: user?.role,
+              onboardingSkipped: user?.onboardingSkipped,
+            }),
+            { status: 200, headers: JSON_HEADERS }
           )
         } catch (error: any) {
           return new Response(
             JSON.stringify({ message: error.message || 'Internal server error' }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } }
+            { status: 500, headers: JSON_HEADERS }
           )
         }
       },
@@ -53,17 +109,25 @@ export const Route = createFileRoute('/api/provision')({
           if (!userId) {
             return new Response(
               JSON.stringify({ message: 'Unauthorized' }),
-              { status: 401, headers: { 'Content-Type': 'application/json' } }
+              { status: 401, headers: JSON_HEADERS }
             )
           }
 
           const body = await request.json()
-          const { agentName, studentName, bio } = body
+          const { agentName, studentName, bio, telegramUserId } = body
 
           if (!agentName || !studentName || !bio) {
             return new Response(
               JSON.stringify({ message: 'Missing required fields' }),
-              { status: 400, headers: { 'Content-Type': 'application/json' } }
+              { status: 400, headers: JSON_HEADERS }
+            )
+          }
+
+          const parsedTelegramUserId = parseTelegramUserId(telegramUserId)
+          if (!parsedTelegramUserId) {
+            return new Response(
+              JSON.stringify({ message: 'Telegram user ID must be a positive numeric ID' }),
+              { status: 400, headers: JSON_HEADERS }
             )
           }
 
@@ -74,7 +138,7 @@ export const Route = createFileRoute('/api/provision')({
           if (existing) {
             return new Response(
               JSON.stringify({ message: 'Agent already exists' }),
-              { status: 409, headers: { 'Content-Type': 'application/json' } }
+              { status: 409, headers: JSON_HEADERS }
             )
           }
 
@@ -82,6 +146,7 @@ export const Route = createFileRoute('/api/provision')({
           const agent = await prisma.agent.create({
             data: {
               userId,
+              telegramUserId: parsedTelegramUserId,
               name: agentName.trim(),
               studentName: studentName.trim(),
               bio,
@@ -97,13 +162,13 @@ export const Route = createFileRoute('/api/provision')({
               pendingApproval: true,
               agent: { id: agent.id, name: agent.name, status: agent.status } 
             }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } }
+            { status: 200, headers: JSON_HEADERS }
           )
         } catch (error: any) {
           console.error('Provision error:', error)
           return new Response(
             JSON.stringify({ message: error.message || 'Internal server error' }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } }
+            { status: 500, headers: JSON_HEADERS }
           )
         }
       },
