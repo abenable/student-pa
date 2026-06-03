@@ -3,16 +3,16 @@ import logging
 
 import httpx
 
-from config import (
+from app.core.config import (
     LITELLM_ADMIN_BASE,
     LITELLM_ADMIN_KEY,
     LITELLM_MODEL,
     PROVISION_RETRIES,
     PROVISION_RETRY_DELAY_SECONDS,
 )
-from exceptions import AgentSetupError
-from storage import update_agent_info
-from utils import safe_slug
+from app.core.exceptions import AgentSetupError
+from app.runtime.storage import update_agent_info
+from app.core.utils import safe_slug
 
 logger = logging.getLogger(__name__)
 

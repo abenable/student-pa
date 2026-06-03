@@ -5,7 +5,7 @@ from pathlib import Path
 
 import docker
 
-from config import (
+from app.core.config import (
     AGENT_DOCKER_NETWORK,
     AGENT_IMAGE,
     AGENTS_BASE_DIR,
@@ -14,9 +14,9 @@ from config import (
     LITELLM_OPENAI_BASE,
     docker_client,
 )
-from exceptions import AgentContainerError
-from storage import update_agent_info
-from utils import redact_text
+from app.core.exceptions import AgentContainerError
+from app.runtime.storage import update_agent_info
+from app.core.utils import redact_text
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +53,18 @@ def _host_student_dir(student_dir: Path) -> Path:
 def _gateway_is_running(container) -> bool:
     result = container.exec_run("sh -lc \"ps -o args= | grep '[h]ermes gateway run'\"", user="hermes")
     return result.exit_code == 0
+
+
+def _prepare_agent_mounts(container) -> None:
+    result = container.exec_run(
+        "chown -R hermes:hermes /home/hermes/.hermes /home/hermes/student-data",
+        user="root",
+    )
+    if result.exit_code != 0:
+        raise AgentContainerError(
+            "Could not assign agent data mounts to the hermes user: "
+            f"{redact_text(result.output.decode(errors='replace'))[:300]}"
+        )
 
 
 def refresh_agent_runtime_status(info: dict) -> dict:
@@ -204,6 +216,8 @@ def spin_up_container(
         time.sleep(1)
     else:
         raise AgentContainerError(f"Container {container_name} did not reach running state in 30s.")
+
+    _prepare_agent_mounts(container)
 
     result = container.exec_run("hermes setup --non-interactive", user="hermes")
     setup_output = redact_text(result.output.decode(errors="replace"))

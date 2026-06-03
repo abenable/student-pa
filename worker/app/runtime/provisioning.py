@@ -2,14 +2,14 @@ import asyncio
 import logging
 import time
 
-from botfather import create_telegram_bot
-from containers import refresh_agent_runtime_status, spin_up_container, stop_and_remove_container
-from config import AGENT_IMAGE, PROVISION_RETRIES, PROVISION_RETRY_DELAY_SECONDS
-from exceptions import AgentContainerError, AgentSetupError, BotFatherError, DuplicateAgentError
-from litellm import delete_litellm_key, ensure_litellm_key
-from models import ProvisionRequest
-from storage import agent_dir, delete_agent_info, load_agent_info, update_agent_info, validate_user_id
-from utils import random_suffix, redact_text, safe_slug
+from app.services.botfather import create_telegram_bot
+from app.runtime.containers import refresh_agent_runtime_status, spin_up_container, stop_and_remove_container
+from app.core.config import AGENT_IMAGE, PROVISION_RETRIES, PROVISION_RETRY_DELAY_SECONDS
+from app.core.exceptions import AgentContainerError, AgentSetupError, BotFatherError, DuplicateAgentError
+from app.services.litellm import delete_litellm_key, ensure_litellm_key
+from app.core.models import ProvisionRequest
+from app.runtime.storage import agent_dir, delete_agent_info, load_agent_info, update_agent_info, validate_user_id
+from app.core.utils import random_suffix, redact_text, safe_slug
 
 logger = logging.getLogger(__name__)
 _provision_locks: dict[str, asyncio.Lock] = {}

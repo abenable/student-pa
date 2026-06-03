@@ -3,14 +3,14 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Header, HTTPException
 from telegram import Update
 
-from config import PROVISIONER_SECRET
-from exceptions import AgentContainerError, AgentSetupError, DuplicateAgentError
-from models import Phase2Request, ProvisionRequest
-from provisioning import do_provision_phase1, do_provision_phase2, resume_provisioning
-from storage import load_agent_info
-from telegram_bot import BOT_COMMANDS, create_telegram_application
-from utils import redact_secrets
-from containers import refresh_agent_runtime_status
+from app.core.config import PROVISIONER_SECRET
+from app.core.exceptions import AgentContainerError, AgentSetupError, DuplicateAgentError
+from app.core.models import Phase2Request, ProvisionRequest
+from app.runtime.provisioning import do_provision_phase1, do_provision_phase2, resume_provisioning
+from app.runtime.storage import load_agent_info
+from app.telegram.bot import BOT_COMMANDS, create_telegram_application
+from app.core.utils import redact_secrets
+from app.runtime.containers import refresh_agent_runtime_status
 
 telegram_app = create_telegram_application()
 

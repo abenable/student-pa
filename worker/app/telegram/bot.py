@@ -12,18 +12,18 @@ from telegram.ext import (
     filters,
 )
 
-from config import SIGNUP_BOT_TOKEN
-from exceptions import AgentContainerError, AgentSetupError, BotFatherError, DuplicateAgentError
-from models import ProvisionRequest
-from provisioning import delete_agent_runtime, do_provision_phase1, do_provision_phase2, ensure_litellm_key
-from storage import (
+from app.core.config import SIGNUP_BOT_TOKEN
+from app.core.exceptions import AgentContainerError, AgentSetupError, BotFatherError, DuplicateAgentError
+from app.core.models import ProvisionRequest
+from app.runtime.provisioning import delete_agent_runtime, do_provision_phase1, do_provision_phase2, ensure_litellm_key
+from app.runtime.storage import (
     delete_onboarding_state,
     load_agent_info,
     load_onboarding_state,
     save_agent_info,
     save_onboarding_state,
 )
-from containers import refresh_agent_runtime_status
+from app.runtime.containers import refresh_agent_runtime_status
 
 logger = logging.getLogger(__name__)
 

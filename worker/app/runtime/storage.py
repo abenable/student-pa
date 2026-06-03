@@ -3,8 +3,8 @@ import re
 import time
 from pathlib import Path
 
-from config import AGENTS_BASE_DIR
-from utils import SECRET_KEYS
+from app.core.config import AGENTS_BASE_DIR
+from app.core.utils import SECRET_KEYS
 
 _USER_ID_RE = re.compile(r"^\d+$")
 

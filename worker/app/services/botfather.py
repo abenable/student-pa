@@ -5,9 +5,9 @@ import re
 from telethon import TelegramClient
 from telethon.tl.functions.contacts import ResolveUsernameRequest
 
-from config import TG_API_HASH, TG_API_ID, TG_SESSION
-from exceptions import BotFatherError
-from utils import redact_bot_tokens, safe_slug
+from app.core.config import TG_API_HASH, TG_API_ID, TG_SESSION
+from app.core.exceptions import BotFatherError
+from app.core.utils import redact_bot_tokens, safe_slug
 
 logger = logging.getLogger(__name__)
 _botfather_lock = asyncio.Lock()

@@ -11,6 +11,7 @@ RUN pip install --upgrade pip && \
     pip install --no-cache-dir --retries 10 --timeout 300 -r requirements.txt
 
 COPY *.py ./
+COPY app ./app
 
 RUN mkdir -p /data /agents
 
