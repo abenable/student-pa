@@ -1,5 +1,6 @@
 import logging
 import os
+import shlex
 import time
 from pathlib import Path
 
@@ -63,6 +64,26 @@ def _prepare_agent_mounts(container) -> None:
     if result.exit_code != 0:
         raise AgentContainerError(
             "Could not assign agent data mounts to the hermes user: "
+            f"{redact_text(result.output.decode(errors='replace'))[:300]}"
+        )
+
+
+def _write_hermes_model_config(container) -> None:
+    config = f"""model: custom:litellm:{LITELLM_MODEL}
+providers:
+  litellm:
+    name: litellm
+    base_url: {LITELLM_OPENAI_BASE}
+    key_env: OPENAI_API_KEY
+    model: {LITELLM_MODEL}
+    models:
+      - {LITELLM_MODEL}
+"""
+    command = "cat > /home/hermes/.hermes/config.yaml <<'EOF'\n" + config + "EOF\n"
+    result = container.exec_run(f"sh -lc {shlex.quote(command)}", user="hermes")
+    if result.exit_code != 0:
+        raise AgentContainerError(
+            "Could not write Hermes model config: "
             f"{redact_text(result.output.decode(errors='replace'))[:300]}"
         )
 
@@ -163,7 +184,7 @@ def spin_up_container(
         "LITELLM_API_KEY": litellm_key,
         "DEFAULT_MODEL": LITELLM_MODEL,
         "HERMES_HOME": "/home/hermes/.hermes",
-        "HERMES_INFERENCE_PROVIDER": "openai",
+        "HERMES_INFERENCE_PROVIDER": "custom:litellm",
         "OPENAI_API_KEY": litellm_key,
         "OPENAI_BASE_URL": LITELLM_OPENAI_BASE,
         "HERMES_MODEL": LITELLM_MODEL,
@@ -218,6 +239,7 @@ def spin_up_container(
         raise AgentContainerError(f"Container {container_name} did not reach running state in 30s.")
 
     _prepare_agent_mounts(container)
+    _write_hermes_model_config(container)
 
     result = container.exec_run("hermes setup --non-interactive", user="hermes")
     setup_output = redact_text(result.output.decode(errors="replace"))
