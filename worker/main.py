@@ -615,9 +615,6 @@ async def do_provision_phase2(user_id: str, attempts: int = PROVISION_RETRIES) -
         )
 
         try:
-            api_server_key = info.get("api_server_key")
-            if not api_server_key:
-                raise AgentSetupError("api_server_key missing from agent data")
             await asyncio.get_event_loop().run_in_executor(
                 None,
                 spin_up_container,
@@ -629,7 +626,6 @@ async def do_provision_phase2(user_id: str, attempts: int = PROVISION_RETRIES) -
                 info["student_name"],
                 info["bio"],
                 info["agent_name"],
-                api_server_key,
             )
         except AgentContainerError as e:
             last_error = str(e)
