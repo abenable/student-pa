@@ -14,7 +14,6 @@ services:
         condition: service_started
     networks:
       - student-pa
-
   worker:
     build:
       context: ./worker
@@ -34,6 +33,5 @@ services:
       retries: 3
     networks:
       - student-pa
-
 networks:
   student-pa:

@@ -51,9 +51,12 @@ LITELLM_ADMIN_BASE = LITELLM_OPENAI_BASE[:-3]  # strip /v1 for admin API
 LITELLM_ADMIN_KEY = os.environ["LITELLM_ADMIN_KEY"]
 AGENT_IMAGE = os.environ.get("AGENT_IMAGE", "student-pa-agent:latest")
 AGENTS_BASE_DIR = Path(os.environ.get("AGENTS_BASE_DIR", "/agents"))
+if not AGENTS_BASE_DIR.is_absolute() and Path("/agents").exists():
+    AGENTS_BASE_DIR = Path("/agents")
 DEFAULT_MODEL = os.environ.get("DEFAULT_MODEL", "Mythos")
 PROVISION_RETRIES = int(os.environ.get("PROVISION_RETRIES", "3"))
 PROVISION_RETRY_DELAY_SECONDS = int(os.environ.get("PROVISION_RETRY_DELAY_SECONDS", "10"))
+AGENT_DOCKER_NETWORK = os.environ.get("AGENT_DOCKER_NETWORK")
 
 TG_API_ID = int(os.environ["TELEGRAM_API_ID"])
 TG_API_HASH = os.environ["TELEGRAM_API_HASH"]
@@ -159,6 +162,28 @@ def update_agent_info(user_id: str, **updates) -> dict:
     info["updated_at"] = int(time.time())
     save_agent_info(user_id, info)
     return info
+
+
+def get_agent_docker_network() -> str:
+    """Use the worker's network unless explicitly overridden."""
+    if AGENT_DOCKER_NETWORK:
+        return AGENT_DOCKER_NETWORK
+
+    hostname = os.environ.get("HOSTNAME")
+    if hostname:
+        try:
+            container = docker_client.containers.get(hostname)
+            networks = container.attrs.get("NetworkSettings", {}).get("Networks", {})
+            for network_name in networks:
+                if network_name.endswith("_student-pa") or network_name == "student-pa":
+                    return network_name
+            for network_name in networks:
+                if network_name not in {"bridge", "host", "none"}:
+                    return network_name
+        except Exception:
+            logger.exception("Failed to inspect worker Docker network")
+
+    return "student-pa"
 
 
 # ── Onboarding progress persistence ───────────────────────────────────────────
@@ -437,6 +462,11 @@ def spin_up_container(
     student_dir.mkdir(parents=True, exist_ok=True)
     (student_dir / "hermes-data").mkdir(exist_ok=True)
     (student_dir / "student-data").mkdir(exist_ok=True)
+    for path in (student_dir, student_dir / "hermes-data", student_dir / "student-data"):
+        try:
+            os.chown(path, 1000, 1000)
+        except PermissionError:
+            logger.warning("Could not chown %s for hermes user", path)
 
     try:
         existing = docker_client.containers.get(container_name)
@@ -454,6 +484,22 @@ def spin_up_container(
             container = None
     except docker.errors.NotFound:
         container = None
+
+    if container is None:
+        try:
+            docker_client.images.get(AGENT_IMAGE)
+        except docker.errors.ImageNotFound:
+            logger.info("Pulling missing agent image %s", AGENT_IMAGE)
+            try:
+                docker_client.images.pull(AGENT_IMAGE)
+            except docker.errors.APIError as e:
+                raise AgentContainerError(
+                    f"Docker cannot pull agent image {AGENT_IMAGE!r}: {e.explanation or e}"
+                ) from e
+        except docker.errors.APIError as e:
+            raise AgentContainerError(
+                f"Docker cannot inspect agent image {AGENT_IMAGE!r}: {e.explanation or e}"
+            ) from e
 
     env = {
         "LITELLM_API_BASE": LITELLM_OPENAI_BASE,
@@ -473,6 +519,7 @@ def spin_up_container(
     }
 
     if container is None:
+        network_name = get_agent_docker_network()
         try:
             container = docker_client.containers.run(
                 AGENT_IMAGE,
@@ -480,7 +527,7 @@ def spin_up_container(
                 detach=True,
                 restart_policy={"Name": "unless-stopped"},
                 environment=env,
-                network="student-pa",
+                network=network_name,
                 volumes={
                     str(student_dir / "hermes-data"): {
                         "bind": "/home/hermes/.hermes",
@@ -496,11 +543,13 @@ def spin_up_container(
                 cap_drop=["ALL"],
                 cap_add=["DAC_OVERRIDE", "CHOWN", "FOWNER"],
             )
-        except (docker.errors.ImageNotFound, docker.errors.APIError) as e:
+        except docker.errors.ImageNotFound as e:
             raise AgentContainerError(
-                f"Docker cannot access agent image {AGENT_IMAGE!r}. "
-                "Build it locally on the VM host, make the GHCR package public, "
-                "or run docker login ghcr.io with a token that has read:packages."
+                f"Docker cannot find agent image {AGENT_IMAGE!r} after pulling it."
+            ) from e
+        except docker.errors.APIError as e:
+            raise AgentContainerError(
+                f"Docker cannot start agent image {AGENT_IMAGE!r}: {e.explanation or e}"
             ) from e
 
     # Wait until container is running (up to 30s)
