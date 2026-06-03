@@ -29,16 +29,16 @@ Student-PA is an **open-source AI agent platform for university students**. Each
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Student-PA Platform                     │
+│                      Student-PA Platform                    │
 ├─────────────┬─────────────┬─────────────────────────────────┤
-│     Web     │   Worker    │         Agent (per student)      │
-│  Dashboard  │  Provisioner│                                  │
+│     Web     │   Worker    │         Agent (per student)     │
+│  Dashboard  │  Provisioner│                                 │
 │  (React 19) │  (FastAPI)  │  ┌───────────────────────────┐  │
 │  TanStack   │  Telegram   │  │   Hermes Agent Container  │  │
 │  Prisma DB  │  BotFather  │  │   - GWS CLI               │  │
-│             │  Orchestrator│  │   - LaTeX / pdflatex      │  │
-│             │             │  │   - Pre-built services      │  │
-│             │             │  │   - Memory & sessions       │  │
+│             │ Orchestrator│  │   - LaTeX / pdflatex      │  │
+│             │             │  │   - Pre-built services    │  │
+│             │             │  │   - Memory & sessions     │  │
 └─────────────┴─────────────┴──┴───────────────────────────┴──┘
                       │
                LiteLLM Gateway
@@ -123,7 +123,7 @@ student-pa/
 | ORM | Prisma (PostgreSQL) |
 | Build Tool | Vite |
 | Test Runner | Vitest |
-| Package Manager | pnpm / bun |
+| Package Manager | bun |
 | Lint / Format | ESLint (tanstack config) + Prettier |
 
 ### Worker
@@ -159,7 +159,7 @@ student-pa/
 
 ### Prerequisites
 - Docker & Docker Compose
-- Node.js 24+ and pnpm (for web)
+- Node.js 24+ and bun (for web)
 - Python 3.11+ and uv (for worker)
 - A LiteLLM instance or OpenAI-compatible API endpoint
 - A Telegram bot token from [@BotFather](https://t.me/botfather)
@@ -177,7 +177,7 @@ docker compose up -d --build
 cd agent && docker build -t student-pa-agent:latest .
 
 # 4. (Optional) Run web dev server with hot reload
-cd web && pnpm install && pnpm run dev
+cd web && bun install && bun run dev
 
 # 5. (Optional) Run worker locally with reload
 cd worker && uv pip install -r requirements.txt
@@ -217,12 +217,12 @@ open http://localhost:3000
 - Use **Tailwind CSS** utility classes for styling; avoid arbitrary values when possible.
 - Use **shadcn/ui** components where appropriate. Add new ones via:
   ```bash
-  pnpm dlx shadcn@latest add button
+  bunx shadcn@latest add button
   ```
 - File-based routing: add routes under `web/src/routes/`.
 - Server functions: use `createServerFn` from `@tanstack/react-start`.
 - API routes: use the `server.handlers` property in route definitions.
-- Run `pnpm run format` before committing.
+- Run `bun run format` before committing.
 
 ### Docker
 - Agent image is **multi-stage** to keep runtime small.
@@ -236,20 +236,20 @@ open http://localhost:3000
 
 ### Web (`web/`)
 ```bash
-pnpm install
-pnpm run dev          # Dev server on :3000
-pnpm run build        # Production build
-pnpm run preview      # Preview production build
-pnpm run test         # Vitest
-pnpm run lint         # ESLint
-pnpm run format       # Prettier + ESLint --fix
-pnpm run check        # Prettier --check
+bun install
+bun run dev          # Dev server on :3000
+bun run build        # Production build
+bun run preview      # Preview production build
+bun run test         # Vitest
+bun run lint         # ESLint
+bun run format       # Prettier + ESLint --fix
+bun run check        # Prettier --check
 
 # Database
-pnpm run db:generate  # Prisma generate
-pnpm run db:push      # Prisma db push
-pnpm run db:migrate   # Prisma migrate dev
-pnpm run db:studio    # Prisma Studio
+bun run db:generate  # Prisma generate
+bun run db:push      # Prisma db push
+bun run db:migrate   # Prisma migrate dev
+bun run db:studio    # Prisma Studio
 ```
 
 ### Worker (`worker/`)
@@ -331,7 +331,7 @@ docker compose logs -f web
 
 ### Database Schema Changes
 1. Edit the Prisma schema (if applicable; schema file may be in `web/prisma/`).
-2. Run `pnpm run db:generate` and `pnpm run db:migrate` inside `web/`.
+2. Run `bun run db:generate` and `bun run db:migrate` inside `web/`.
 3. Update any affected TypeScript types.
 
 ---
